@@ -78,11 +78,9 @@ const nextConfig: NextConfig = {
   // Redirects
   async redirects() {
     return [
-      {
-        source: '/admin',
-        destination: '/admin/login',
-        permanent: true,
-      },
+      // Note: Removed /admin → /admin/login redirect
+      // The protected layout now handles auth redirection
+      // This prevents redirect loops with the login page
       {
         source: '/courses',
         destination: '/shop',
