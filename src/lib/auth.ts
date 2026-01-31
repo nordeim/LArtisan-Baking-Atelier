@@ -289,3 +289,19 @@ export function requireAdmin(user: JWTPayload): void {
     throw new Error('Admin access required');
   }
 }
+
+/**
+ * Require admin role (async version for API routes)
+ * 
+ * Gets current user and verifies admin role
+ * @returns User payload if admin, null otherwise
+ */
+export async function requireAdminAuth(): Promise<JWTPayload | null> {
+  const user = await getCurrentUser();
+  
+  if (!user || user.role !== UserRole.ADMIN) {
+    return null;
+  }
+  
+  return user;
+}
