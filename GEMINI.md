@@ -136,6 +136,9 @@ src/
 
 ### 🔐 Authentication
 - **User:** JWT (Jose) in HTTP-only `__Host-` cookies.
+- **Strategy:** **Layout-Based Guards** (No `middleware.ts`).
+    - Admin: Protected via `src/app/admin/(protected)/layout.tsx`.
+    - Customer: Protected via page-level checks in `src/app/(shop)/account`.
 - **Admin:** Separate login flow.
 - **Guest:** Allowed for checkout.
 
