@@ -1,8 +1,8 @@
 # L'Artisan Baking Atelier - AI Agent Briefing Document
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Last Updated:** 2026-01-31  
-**Project Status:** Core Implementation Complete (Phases 1-8)
+**Project Status:** Core Implementation Complete (Phases 1-9)
 
 ---
 
@@ -11,11 +11,11 @@
 L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baking school in Singapore. The platform is built with Next.js 16, React 19, TypeScript 5.9, Tailwind CSS v4, and PostgreSQL 16. It features a complete shopping cart, Stripe payment integration with Singapore GST compliance (9%), and a responsive, accessible UI.
 
 **Current State:**
-- ✅ Phases 1-8 Complete (Foundation through Admin Dashboard)
+- ✅ Phases 1-9 Complete (Foundation through User Dashboard)
 - ✅ 84+ passing unit tests
-- ✅ Production build verified (30 routes)
+- ✅ Production build verified (44 routes)
 - ✅ TypeScript strict mode compliance
-- ⏳ Phases 9-10 Pending (User Dashboard, Deployment)
+- ⏳ Phase 10 Pending (Production Deployment)
 
 ---
 
@@ -64,7 +64,7 @@ L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baki
 ```
 src/
 ├── app/
-│   ├── (store)/                    # Storefront route group
+│   ├── (shop)/                     # Storefront route group
 │   │   ├── page.tsx                # Homepage with sections
 │   │   ├── layout.tsx              # Store layout (Header/Footer/MobileNav)
 │   │   ├── shop/
@@ -72,10 +72,20 @@ src/
 │   │   │   └── [slug]/
 │   │   │       ├── page.tsx        # Product detail page
 │   │   │       └── not-found.tsx   # 404 for invalid products
-│   │   └── checkout/
-│   │       ├── page.tsx            # Checkout with Stripe Elements
-│   │       └── success/
-│   │           └── page.tsx        # Order confirmation
+│   │   ├── checkout/
+│   │   │   ├── page.tsx            # Checkout with Stripe Elements
+│   │   │   └── success/
+│   │   │       └── page.tsx        # Order confirmation
+│   │   ├── login/                  # Customer login
+│   │   ├── register/               # Customer registration
+│   │   ├── forgot-password/        # Password reset request
+│   │   ├── reset-password/         # Password reset confirmation
+│   │   └── account/                # Protected customer portal
+│   │       ├── page.tsx            # Dashboard overview
+│   │       ├── layout.tsx          # Protected layout with sidebar
+│   │       ├── orders/             # Order history
+│   │       ├── courses/            # My courses access
+│   │       └── profile/            # Profile & password management
 │   ├── admin/                      # Admin routes (route groups)
 │   │   ├── (protected)/            # Protected admin routes
 │   │   │   ├── layout.tsx          # Auth-check layout
@@ -138,7 +148,8 @@ src/
 │   ├── utils.ts                    # Common utilities (cn, formatPrice, etc.)
 │   ├── prisma.ts                   # Prisma client singleton
 │   ├── stripe.ts                   # Stripe server/client config
-│   ├── auth.ts                     # JWT authentication with Jose
+│   ├── auth.ts                     # JWT authentication with Jose (server)
+│   ├── auth-client.ts              # Client-side auth helpers
 │   ├── cart-utils.ts               # Cart calculation functions
 │   ├── gst-calculator.ts           # Singapore GST 9% calculations
 │   ├── shop.ts                     # Product data fetching
@@ -169,7 +180,7 @@ public/
 
 ### Models Overview
 
-1. **User** - Customer accounts with PDPA compliance fields
+1. **User** - Customer accounts with PDPA compliance fields, password reset
 2. **Account** - OAuth provider accounts
 3. **Session** - User sessions
 4. **Category** - Product categories
@@ -177,6 +188,7 @@ public/
 6. **Order** - Orders with Stripe integration
 7. **OrderItem** - Line items with historical pricing snapshot
 8. **Review** - Product reviews
+9. **DigitalAccess** - Course enrollment tracking (granted on purchase)
 
 ### Key Schema Decisions
 
@@ -308,7 +320,9 @@ Example:
 
 ### 4. Authentication
 
-**Location:** `src/lib/auth.ts`
+**Files:**
+- `src/lib/auth.ts` - Server-side JWT utilities
+- `src/lib/auth-client.ts` - Client-side auth helpers
 
 ```typescript
 // JWT with Jose (Edge runtime compatible)
@@ -316,9 +330,44 @@ Example:
 // 8-hour token expiration
 // __Host- prefix cookie name for security
 // httpOnly, secure, sameSite=strict flags
+
+// Server-side usage:
+const user = await requireAuth(request)  // Throws on unauthorized
+const isAdmin = (user) => user.role === 'ADMIN'
+
+// Client-side usage:
+const user = await getCurrentUser()  // Returns null if not authenticated
+const isUserAdmin = await isAdmin()
+
+// Protected layout pattern:
+// - Check cookie in layout.tsx (server)
+// - Verify JWT with verifyToken()
+// - Redirect to /login if missing/invalid
 ```
 
-### 5. Data Fetching
+### 5. Digital Course Access
+
+**Files:**
+- `prisma/schema.prisma` - DigitalAccess model
+- `src/app/api/webhooks/stripe/route.ts` - Grant access on payment
+- `src/app/api/account/courses/route.ts` - Fetch user's courses
+
+```typescript
+// DigitalAccess model:
+- Granted when payment webhook confirms order
+- Tracks: grantedAt, lastAccessedAt, accessCount
+- Stores: progress JSON for course completion
+- Revocable: revokedAt field for refunds
+
+// Flow:
+1. Customer purchases course ( Stripe payment )
+2. Webhook receives payment_intent.succeeded
+3. Webhook creates DigitalAccess record
+4. Customer views /account/courses
+5. API returns active (non-revoked) access records
+```
+
+### 6. Data Fetching
 
 **Pattern:** Server Components with Prisma
 
@@ -326,8 +375,9 @@ Example:
 // In page components (server-side):
 const products = await prisma.product.findMany({...})
 
-// In client components:
-const { data } = useSWR('/api/...', fetcher)  // Not yet implemented
+// In client components (account pages):
+const response = await fetch('/api/account/orders')
+const { orders } = await response.json()
 ```
 
 ---
@@ -392,11 +442,26 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 ## API Routes
 
+### Public Routes
 | Route | Method | Purpose |
 |-------|--------|---------|
 | `/api/checkout` | POST | Create payment intent, validate cart, create order |
 | `/api/webhooks/stripe` | POST | Handle payment_intent.succeeded/failed |
 | `/api/health` | GET | Health check endpoint |
+| `/api/auth/login` | POST | User authentication |
+| `/api/auth/register` | POST | User registration (auto-login) |
+| `/api/auth/logout` | GET/POST | Clear auth cookie |
+| `/api/auth/forgot-password` | POST | Request password reset |
+| `/api/auth/reset-password` | POST | Confirm password reset |
+
+### Protected Routes (Customer)
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/account/profile` | GET | Get user profile |
+| `/api/account/profile` | PATCH | Update profile (name, email) |
+| `/api/account/profile` | POST | Change password |
+| `/api/account/orders` | GET | Get order history |
+| `/api/account/courses` | GET | Get digital course access |
 
 ---
 
@@ -429,10 +494,17 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 ### Adding a New Page
 
-1. Create file in `src/app/(store)/` or `src/app/admin/`
+1. Create file in `src/app/(shop)/` or `src/app/admin/`
 2. Use existing layout or create new route group
 3. Follow TypeScript strict mode (no `any` types)
 4. Add to navigation if needed in `src/lib/navigation.ts`
+
+### Adding an Auth-Protected Page
+
+1. Create page under `src/app/(shop)/account/[page]/`
+2. Account layout (`layout.tsx`) handles auth check automatically
+3. For client data fetching, use `/api/account/*` endpoints
+4. Server Components can use `requireAuth()` from `lib/auth.ts`
 
 ### Adding a New Component
 
@@ -478,12 +550,16 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 - [x] Low stock alerts
 - [x] Responsive admin sidebar
 
-### Phase 9: User Dashboard & My Courses
-- [ ] User account page
-- [ ] Order history
-- [ ] My courses access
-- [ ] Profile management
-- [ ] Password reset flow
+### Phase 9: User Dashboard & My Courses ✅ COMPLETE
+- [x] Customer authentication (login/register/logout)
+- [x] Protected `/account/*` routes with sidebar navigation
+- [x] Dashboard with order stats and course count
+- [x] Order history with detail modal
+- [x] My Courses page (digital access listing)
+- [x] Profile management (edit profile, change password)
+- [x] Password reset flow (forgot/reset)
+- [x] DigitalAccess model for course enrollment
+- [x] Header account link integration
 
 ### Phase 10: Production Deployment
 - [ ] Production environment variables

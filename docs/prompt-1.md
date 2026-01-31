@@ -6,8 +6,7 @@ please meticulously review and edit @package.json appropriately, then meticulous
 
 ---
 
-Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously review @MASTER_EXE
-CUTION_PLAN.md against @CLAUDE.md , then create a comprehensive sub-plan with integrated checklist for Phase 9. Review and validate the sub-plan for Phase 9 before proceeding to execute it meticulously.
+Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously review @MASTER_EXECUTION_PLAN.md against @CLAUDE.md , then create a comprehensive sub-plan with integrated checklist for Phase 9. Review and validate the sub-plan for Phase 9 before proceeding to execute it meticulously.
 
 ---
 
@@ -33,7 +32,9 @@ Awesome job on your meticulous analysis, planning and execution. Please keep up 
 
 ---
 
-Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously investigate/check
-the following nav links in the bottom footer bar, then meticulously plan to make these links active and pointing to some valid content that make sense, create best dummy content that is applicable and appropriate for each of the links i
-f necessary.
+Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously investigate/check the following nav links in the bottom footer bar, then meticulously plan to make these links active and pointing to some valid content that make sense, create best dummy content that is applicable and appropriate for each of the links if necessary.
+
+---
+
+Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously plan and create the detailed comprehensive `Project Architecture Document` with file hierarchy diagram with listing of key files and their description, mermaid diagrams to show the application flowcharts and the database schema. Review and validate the PAD against the project planning documents and the actual codebase. Finally, create a detailed and comprehensive `Project_Architecture_Document.md` in the project root folder, as the single source-of-truth handbook to fully initialize new developer or another coding agent to be able to handle new PRs independently.
 

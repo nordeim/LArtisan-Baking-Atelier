@@ -48,6 +48,7 @@
 - 🔒 **PDPA Compliant** - Singapore data protection compliance built-in
 - 🧪 **Well Tested** - 84+ unit tests with Vitest
 - 🎛️ **Admin Dashboard** - Full CRUD for orders and products
+- 👤 **User Dashboard** - Order history, course access, profile management
 
 ---
 
@@ -58,6 +59,7 @@
 - 🔍 **Product Catalog** - Filter by category, sort by price/name
 - 📦 **Product Detail** - Image gallery, curriculum preview, reviews
 - 🛍️ **Shopping Cart** - Real-time updates, quantity management
+- 👤 **Customer Portal** - Account dashboard, order tracking, course access
 
 ### Checkout Experience
 - 💰 **GST Calculation** - Automatic 9% Singapore GST computation
@@ -77,6 +79,7 @@
 - 🔐 **JWT Authentication** - Secure session management with Jose
 - 📱 **PWA Ready** - Service worker support
 - 🌐 **SEO Optimized** - Meta tags, structured data
+- 🎓 **Digital Course Access** - Automatic enrollment on purchase
 
 ---
 
@@ -208,9 +211,36 @@ LArtisan-Baking-Atelier/
 │   │   │   │   ├── 📄 page.tsx      # Checkout form
 │   │   │   │   └── 📂 success/      # Order confirmation
 │   │   │   │       └── 📄 page.tsx  # Success page
+│   │   │   ├── 📂 account/          # Customer portal (protected)
+│   │   │   │   ├── 📄 page.tsx      # Dashboard overview
+│   │   │   │   ├── 📄 layout.tsx    # Protected layout with sidebar
+│   │   │   │   ├── 📂 orders/       # Order history
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   ├── 📂 courses/      # My courses access
+│   │   │   │   │   └── 📄 page.tsx
+│   │   │   │   └── 📂 profile/      # Profile & password
+│   │   │   │       └── 📄 page.tsx
+│   │   │   ├── 📂 login/            # Customer login
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📂 register/         # Customer registration
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📂 forgot-password/  # Password reset request
+│   │   │   │   └── 📄 page.tsx
+│   │   │   ├── 📂 reset-password/   # Password reset confirm
+│   │   │   │   └── 📄 page.tsx
 │   │   │   ├── 📄 page.tsx          # Homepage
 │   │   │   └── 📄 layout.tsx        # Store layout
 │   │   ├── 📂 api/                  # API routes
+│   │   │   ├── 📂 auth/             # Authentication
+│   │   │   │   ├── 📂 login/        # POST: User login
+│   │   │   │   ├── 📂 register/     # POST: User registration
+│   │   │   │   ├── 📂 logout/       # GET/POST: Logout
+│   │   │   │   ├── 📂 forgot-password/ # POST: Reset request
+│   │   │   │   └── 📂 reset-password/  # POST: Reset confirm
+│   │   │   ├── 📂 account/          # Customer APIs (protected)
+│   │   │   │   ├── 📂 profile/      # GET/PATCH: Profile, POST: Password
+│   │   │   │   ├── 📂 orders/       # GET: Order history
+│   │   │   │   └── 📂 courses/      # GET: Digital access
 │   │   │   ├── 📂 checkout/         # Payment intent
 │   │   │   │   └── 📄 route.ts      # POST handler
 │   │   │   └── 📂 webhooks/         # Stripe webhooks
@@ -260,8 +290,12 @@ LArtisan-Baking-Atelier/
 │   │   ├── 📄 utils.ts              # Common utilities
 │   │   ├── 📄 prisma.ts             # Prisma client
 │   │   ├── 📄 stripe.ts             # Stripe config
+│   │   ├── 📄 auth.ts               # JWT authentication (server)
+│   │   ├── 📄 auth-client.ts        # Auth helpers (client)
 │   │   ├── 📄 cart-utils.ts         # Cart utilities
-│   │   └── 📄 gst-calculator.ts     # GST calculation
+│   │   ├── 📄 gst-calculator.ts     # GST calculation
+│   │   ├── 📄 shop.ts               # Product data fetching
+│   │   └── 📄 navigation.ts         # Nav configuration
 │   │
 │   ├── 📂 hooks/                    # Custom React hooks
 │   │   └── 📄 useCart.ts            # Cart hook
@@ -300,27 +334,45 @@ LArtisan-Baking-Atelier/
 flowchart TD
     A[🏠 Homepage] --> B{Authenticated?}
     B -->|No| C[Browse as Guest]
-    B -->|Yes| D[Personalized View]
+    B -->|Yes| D[👤 Account Dashboard]
     C --> E[🔍 Browse Courses]
     D --> E
-    E --> F[Filter by Category]
-    F --> G[Sort by Price/Name]
-    G --> H[📦 View Product]
-    H --> I[Read Reviews]
-    I --> J[Add to Cart 🛒]
-    J --> K{Continue Shopping?}
-    K -->|Yes| E
-    K -->|No| L[View Cart]
-    L --> M[Adjust Quantity]
-    M --> N[Proceed to Checkout]
-    N --> O[📋 Enter Details]
-    O --> P[💳 Payment]
-    P --> Q{Payment Success?}
-    Q -->|Yes| R[✅ Order Confirmed]
-    Q -->|No| S[❌ Payment Failed]
-    S --> P
-    R --> T[📧 Email Receipt]
-    R --> U[📚 Access Course]
+    
+    subgraph "🔐 Authentication"
+        F[📝 Register] --> G[✉️ Verify Email]
+        H[🔑 Login] --> D
+        I[❓ Forgot Password] --> J[📧 Reset Email]
+        J --> K[🔒 Reset Password]
+        K --> H
+    end
+    
+    E --> L[Filter by Category]
+    L --> M[Sort by Price/Name]
+    M --> N[📦 View Product]
+    N --> O[Read Reviews]
+    O --> P[Add to Cart 🛒]
+    P --> Q{Continue Shopping?}
+    Q -->|Yes| E
+    Q -->|No| R[View Cart]
+    R --> S[Adjust Quantity]
+    S --> T[Proceed to Checkout]
+    T --> U[📋 Enter Details]
+    U --> V[💳 Payment]
+    V --> W{Payment Success?}
+    W -->|Yes| X[✅ Order Confirmed]
+    W -->|No| Y[❌ Payment Failed]
+    Y --> V
+    X --> Z[📧 Email Receipt]
+    X --> AA[📚 Access Course]
+    
+    subgraph "📊 Account Portal"
+        D --> AB[📦 My Orders]
+        D --> AC[🎓 My Courses]
+        D --> AD[⚙️ Profile Settings]
+        AB --> AE[View Order Details]
+        AC --> AF[Watch Course Content]
+        AD --> AG[Change Password]
+    end
 ```
 
 ---
@@ -437,6 +489,7 @@ npx playwright test
 |--------|----------|
 | GST Calculator | 100% |
 | Cart Utilities | 100% |
+| Authentication | Core flows tested |
 | **Total** | **84 tests passing** |
 
 ---
