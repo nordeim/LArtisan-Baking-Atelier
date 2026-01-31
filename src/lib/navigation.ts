@@ -48,13 +48,8 @@ export interface FooterNavGroups {
 export const mainNavItems: NavItem[] = [
   {
     href: '/shop',
-    label: 'Shop',
-    description: 'Browse our artisan bakery products',
-  },
-  {
-    href: '/shop',
     label: 'Courses',
-    description: 'Learn from master bakers',
+    description: 'Browse our professional baking courses',
   },
   {
     href: '/about',
@@ -65,6 +60,11 @@ export const mainNavItems: NavItem[] = [
     href: '/journal',
     label: 'Journal',
     description: 'Baking tips, recipes, and stories',
+  },
+  {
+    href: '/contact',
+    label: 'Contact',
+    description: 'Get in touch with us',
   },
 ];
 
