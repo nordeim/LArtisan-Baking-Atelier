@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: artisan_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: artisan
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-artisan_secure_password}
+      POSTGRES_DB: artisan_atelier
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artisan -d artisan_atelier"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - artisan_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: artisan_cache
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - artisan_network
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${DOCKER_TARGET:-runner}
+    container_name: artisan_app
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://artisan:${DB_PASSWORD:-artisan_secure_password}@postgres:5432/artisan_atelier?schema=public
+      DIRECT_URL: postgresql://artisan:${DB_PASSWORD:-artisan_secure_password}@postgres:5432/artisan_atelier?schema=public
+      
+      # Redis
+      REDIS_URL: redis://redis:6379
+      
+      # Auth
+      JWT_SECRET: ${JWT_SECRET:-development-secret-do-not-use-in-production}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      
+      # Stripe
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      
+      # App
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - artisan_network
+    # Development volume mounts (only for dev mode)
+    volumes:
+      - ./:/app:delegated
+      - /app/node_modules
+      - /app/.next
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    name: artisan_postgres_data
+  redis_data:
+    name: artisan_redis_data
+
+# Custom network for service communication
+networks:
+  artisan_network:
+    name: artisan_network
+    driver: bridge

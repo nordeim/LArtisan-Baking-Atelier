@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+/* ============================================
+   L'Artisan Baking Atelier - Tailwind v4 Theme
+   CSS-First Configuration with OKLCH Colors
+   ============================================ */
+
+@theme {
+  /* ============================================
+     Colors - Warm Artisan Palette (OKLCH)
+     ============================================ */
+  --color-crust-50: oklch(0.985 0.005 75);
+  --color-crust-100: oklch(0.96 0.015 80);
+  --color-crust-200: oklch(0.91 0.03 80);
+  --color-crust-300: oklch(0.84 0.06 75);
+  --color-crust-400: oklch(0.75 0.1 70); /* Buttery Gold - Primary CTA */
+  --color-crust-500: oklch(0.65 0.12 65);
+  --color-crust-600: oklch(0.55 0.1 60);
+  --color-crust-700: oklch(0.45 0.08 55);
+  --color-crust-800: oklch(0.3 0.06 50); /* Espresso */
+  --color-crust-900: oklch(0.2 0.04 45); /* Dark Cocoa */
+  --color-crust-950: oklch(0.12 0.02 40);
+  
+  /* Sage accent colors */
+  --color-sage-400: oklch(0.75 0.06 130);
+  --color-sage-500: oklch(0.65 0.08 125);
+  
+  /* Semantic colors */
+  --color-background: var(--color-crust-50);
+  --color-foreground: var(--color-crust-900);
+  --color-primary: var(--color-crust-400);
+  --color-primary-foreground: var(--color-crust-950);
+  --color-secondary: var(--color-crust-100);
+  --color-secondary-foreground: var(--color-crust-800);
+  --color-muted: var(--color-crust-100);
+  --color-muted-foreground: var(--color-crust-600);
+  --color-accent: var(--color-crust-200);
+  --color-accent-foreground: var(--color-crust-900);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0.005 75);
+  --color-border: var(--color-crust-200);
+  --color-input: var(--color-crust-200);
+  --color-ring: var(--color-crust-400);
+
+  /* ============================================
+     Typography
+     ============================================ */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ============================================
+     Spacing - Extended Scale
+     ============================================ */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+  --spacing-30: 7.5rem;
+
+  /* ============================================
+     Border Radius
+     ============================================ */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+  --radius-soft: 1.25rem;
+  --radius-pill: 9999px;
+
+  /* ============================================
+     Shadows
+     ============================================ */
+  --shadow-card: 0 4px 20px -4px rgba(44, 24, 16, 0.08);
+  --shadow-card-hover: 0 20px 40px -12px rgba(44, 24, 16, 0.15);
+  --shadow-elevated: 0 25px 50px -12px rgba(44, 24, 16, 0.18);
+  --shadow-glow: 0 0 60px -15px rgba(212, 165, 116, 0.4);
+
+  /* ============================================
+     Animations & Keyframes
+     ============================================ */
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-fade-in: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-scale-in: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-slide-out-right: slide-out-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes scale-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes slide-in-right {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-out-right {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+/* ============================================
+   Base Layer - Global Styles
+   ============================================ */
+@layer base {
+  /* Default border color */
+  * {
+    @apply border-crust-200;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Body base styles */
+  body {
+    @apply bg-crust-50 text-crust-900 font-body antialiased;
+  }
+
+  /* Heading typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-crust-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-crust-400 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-crust-500;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-crust-400) var(--color-crust-100);
+  }
+
+  /* Selection styling */
+  ::selection {
+    @apply bg-crust-400 text-crust-950;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-crust-400 ring-offset-2 ring-offset-crust-50;
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ============================================
+   Utilities Layer - Custom Helper Classes
+   ============================================ */
+@layer utilities {
+  /* Text balance for better typography */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Card lift effect on hover */
+  .card-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .card-lift:hover {
+    @apply -translate-y-1.5;
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Gradient text effect */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--color-crust-900) 0%, var(--color-crust-600) 50%, var(--color-crust-400) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass panel effect */
+  .glass-panel {
+    @apply bg-crust-50/80 backdrop-blur-xl;
+    border: 1px solid rgba(253, 248, 243, 0.5);
+  }
+
+  .glass-panel-dark {
+    @apply bg-crust-900/80 backdrop-blur-xl;
+    border: 1px solid rgba(44, 24, 16, 0.5);
+  }
+
+  /* Container utilities */
+  .container-tight {
+    @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Aspect ratios */
+  .aspect-4\/5 {
+    aspect-ratio: 4 / 5;
+  }
+
+  .aspect-3\/4 {
+    aspect-ratio: 3 / 4;
+  }
+
+  /* Animation delays */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+}

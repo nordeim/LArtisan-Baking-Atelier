@@ -1,0 +1,124 @@
+# ============================================
+# Dependencies
+# ============================================
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# Git
+# ============================================
+.git
+.gitignore
+.gitattributes
+
+# ============================================
+# Environment Files
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# ============================================
+# Next.js Build Output
+# ============================================
+.next
+dist
+out
+*.tsbuildinfo
+next-env.d.ts
+
+# ============================================
+# Testing
+# ============================================
+tests
+test
+__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# ============================================
+# Documentation
+# ============================================
+README.md
+CHANGELOG.md
+LICENSE
+docs
+*.md
+
+# ============================================
+# IDE & Editor
+# ============================================
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================
+# CI/CD
+# ============================================
+.github
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# ============================================
+# Docker
+# ============================================
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# ============================================
+# Local Development
+# ============================================
+*.local
+.vagrant
+.vscode-test
+
+# ============================================
+# Temporary Files
+# ============================================
+tmp
+temp
+*.tmp
+*.temp
+.cache
+*.cache
+logs
+*.log
+
+# ============================================
+# Database (local)
+# ============================================
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+postgres_data
+redis_data
+pgdata
+
+# ============================================
+# Misc
+# ============================================
+.vercel
+.netlify
+.turbo
+.eslintcache
+.stylelintcache

@@ -1,0 +1,317 @@
+// ============================================
+// L'Artisan Baking Atelier - Prisma Schema
+// PostgreSQL 16 with PDPA Compliance & Singapore GST Precision
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  BAKER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ============================================
+// User Management Models
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  hashedPassword String   @map("hashed_password")
+  role          UserRole  @default(CUSTOMER)
+  emailVerified DateTime? @map("email_verified")
+  
+  // PDPA Compliance Fields
+  deletionRequested   DateTime? @map("deletion_requested")
+  dataExportRequested DateTime? @map("data_export_requested")
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  accounts Account[]
+  sessions Session[]
+  orders   Order[]
+  reviews  Review[]
+  
+  @@map("users")
+  @@index([email])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+  @@index([sessionToken])
+  @@index([userId])
+}
+
+// ============================================
+// Product Catalog Models
+// ============================================
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  image       String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  products Product[]
+  
+  @@map("categories")
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Product {
+  id               String  @id @default(cuid())
+  name             String
+  slug             String  @unique
+  description      String  @db.Text
+  shortDescription String? @map("short_description")
+  
+  // Pricing with Singapore GST precision
+  // DECIMAL(10,4): 6 digits + 4 decimals = supports up to $999,999.9999
+  price          Decimal @db.Decimal(10, 4)
+  compareAtPrice Decimal? @map("compare_at_price") @db.Decimal(10, 4)
+  gstRate        Decimal @default(0.09) @map("gst_rate") @db.Decimal(4, 4)
+  
+  // Inventory
+  sku               String  @unique
+  stockQuantity     Int     @default(0) @map("stock_quantity")
+  lowStockThreshold Int     @default(5) @map("low_stock_threshold")
+  
+  // Media & Attributes
+  images    String[]
+  weight    Decimal? @db.Decimal(8, 3) // Weight in kg
+  isDigital Boolean @default(false) @map("is_digital")
+  
+  // Status
+  isAvailable Boolean @default(true) @map("is_available")
+  isFeatured  Boolean @default(false) @map("is_featured")
+  
+  // SEO
+  metaTitle       String? @map("meta_title")
+  metaDescription String? @map("meta_description")
+  
+  // Relations
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id])
+  
+  orderItems OrderItem[]
+  reviews    Review[]
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("products")
+  @@index([slug])
+  @@index([categoryId])
+  @@index([isFeatured])
+  @@index([isAvailable])
+  @@index([createdAt])
+}
+
+// ============================================
+// Order Management Models
+// ============================================
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique @map("order_number")
+  
+  // User relation (optional for guest checkout)
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id])
+  
+  // Status
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  paymentMethod String?       @map("payment_method")
+  
+  // Financial Fields - All DECIMAL(10,4) for Singapore GST compliance
+  // subtotal: Sum of all line items before GST
+  subtotal       Decimal @db.Decimal(10, 4)
+  gstAmount      Decimal @map("gst_amount") @db.Decimal(10, 4)
+  shippingCost   Decimal @default(0) @map("shipping_cost") @db.Decimal(10, 4)
+  discountAmount Decimal @default(0) @map("discount_amount") @db.Decimal(10, 4)
+  total          Decimal @db.Decimal(10, 4)
+  
+  // Customer Details
+  customerEmail String  @map("customer_email")
+  customerName  String  @map("customer_name")
+  customerPhone String? @map("customer_phone")
+  
+  // Addresses (JSON for flexibility)
+  shippingAddress Json @map("shipping_address")
+  billingAddress  Json? @map("billing_address")
+  
+  // Stripe Integration
+  stripePaymentIntentId String? @map("stripe_payment_intent_id")
+  stripeCustomerId      String? @map("stripe_customer_id")
+  
+  // Notes
+  notes         String? @db.Text
+  internalNotes String? @map("internal_notes") @db.Text
+  
+  // Fulfillment
+  trackingNumber String?   @map("tracking_number")
+  shippedAt      DateTime? @map("shipped_at")
+  deliveredAt    DateTime? @map("delivered_at")
+  
+  // Relations
+  orderItems OrderItem[]
+  reviews    Review[]
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("orders")
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+  
+  // Relations
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  
+  // Item Details
+  quantity Int
+  
+  // Historical Pricing (snapshot at time of order)
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 4)
+  gstRate   Decimal @map("gst_rate") @db.Decimal(4, 4)
+  total     Decimal @db.Decimal(10, 4)
+  
+  // Product Snapshot
+  productName  String  @map("product_name")
+  productSku   String  @map("product_sku")
+  productImage String? @map("product_image")
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("order_items")
+  @@index([orderId])
+  @@index([productId])
+}
+
+// ============================================
+// Review Model
+// ============================================
+
+model Review {
+  id String @id @default(cuid())
+  
+  // Relations
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+  
+  orderId String? @map("order_id")
+  order   Order?  @relation(fields: [orderId], references: [id])
+  
+  // Review Content
+  rating  Int     // 1-5 scale
+  title   String?
+  comment String? @db.Text
+  
+  // Moderation
+  isVerified  Boolean @default(false) @map("is_verified")
+  isPublished Boolean @default(true) @map("is_published")
+  
+  // Engagement
+  helpfulCount Int @default(0) @map("helpful_count")
+  
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@unique([productId, userId])
+  @@map("reviews")
+  @@index([productId])
+  @@index([userId])
+  @@index([isPublished])
+  @@index([createdAt])
+}
