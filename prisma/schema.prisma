@@ -56,15 +56,20 @@ model User {
   deletionRequested   DateTime? @map("deletion_requested")
   dataExportRequested DateTime? @map("data_export_requested")
   
+  // Password Reset
+  resetToken       String?   @unique @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   
   // Relations
-  accounts Account[]
-  sessions Session[]
-  orders   Order[]
-  reviews  Review[]
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  reviews       Review[]
+  digitalAccess DigitalAccess[]
   
   @@map("users")
   @@index([email])
@@ -166,8 +171,9 @@ model Product {
   categoryId String?   @map("category_id")
   category   Category? @relation(fields: [categoryId], references: [id])
   
-  orderItems OrderItem[]
-  reviews    Review[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  digitalAccess DigitalAccess[]
   
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -229,8 +235,9 @@ model Order {
   deliveredAt    DateTime? @map("delivered_at")
   
   // Relations
-  orderItems OrderItem[]
-  reviews    Review[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  digitalAccess DigitalAccess[]
   
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -314,4 +321,40 @@ model Review {
   @@index([userId])
   @@index([isPublished])
   @@index([createdAt])
+}
+
+// ============================================
+// Digital Access Model (Courses & Downloads)
+// ============================================
+
+model DigitalAccess {
+  id String @id @default(cuid())
+  
+  // Relations
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId String  @map("product_id")
+  product   Product @relation(fields: [productId], references: [id])
+  
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+  
+  // Access Status
+  grantedAt DateTime @default(now()) @map("granted_at")
+  revokedAt DateTime? @map("revoked_at")
+  
+  // Usage Tracking
+  lastAccessedAt DateTime? @map("last_accessed_at")
+  accessCount    Int       @default(0) @map("access_count")
+  
+  // Content Progress (for courses)
+  progress Json? // Store progress data
+  
+  @@unique([userId, productId])
+  @@map("digital_access")
+  @@index([userId])
+  @@index([productId])
+  @@index([orderId])
+  @@index([grantedAt])
 }

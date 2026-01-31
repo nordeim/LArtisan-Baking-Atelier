@@ -1,49 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { verifyPassword, createToken } from '@/lib/auth';
+import { hashPassword, createToken } from '@/lib/auth';
 
 /**
- * User Login API
+ * User Registration API
  * 
- * Authenticates users with email/password.
- * Supports both CUSTOMER and ADMIN roles.
- * Returns JWT token on success.
+ * Creates a new customer account with email/password.
+ * Returns JWT token on success for auto-login.
  */
 
-const loginSchema = z.object({
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, password } = loginSchema.parse(body);
+    const { name, email, password } = registerSchema.parse(body);
 
-    // Find user
-    const user = await prisma.user.findUnique({
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || !user.hashedPassword) {
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
+        { error: 'An account with this email already exists' },
+        { status: 409 }
       );
     }
 
-    // Verify password
-    const isValid = await verifyPassword(password, user.hashedPassword);
+    // Hash password
+    const hashedPassword = await hashPassword(password);
 
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        hashedPassword,
+        role: 'CUSTOMER',
+      },
+    });
 
-    // Create JWT token
+    // Create JWT token for auto-login
     const token = await createToken({
       sub: user.id,
       email: user.email,
@@ -59,7 +62,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         role: user.role,
       },
-    });
+    }, { status: 201 });
 
     response.cookies.set({
       name: '__Host-artisan-token',
@@ -80,7 +83,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.error('Login error:', error);
+    console.error('Registration error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
 import { mainNavItems, isNavItemActive } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { CartBadge } from '@/components/cart/CartBadge';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { getCurrentUser } from '@/lib/auth-client';
 
 /**
  * Header Component
@@ -30,6 +31,7 @@ export function Header({
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string } | null>(null);
 
   // Track scroll position for background transition
   useEffect(() => {
@@ -42,6 +44,15 @@ export function Header({
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Check auth status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    checkAuth();
   }, []);
 
   return (
@@ -120,6 +131,35 @@ export function Header({
 
           {/* Right Actions */}
           <div className="flex items-center gap-3">
+            {/* Account / Login Link */}
+            {user ? (
+              <Link
+                href="/account"
+                className={cn(
+                  'hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                  pathname.startsWith('/account')
+                    ? 'text-crust-900 bg-crust-100'
+                    : 'text-crust-700 hover:text-crust-900 hover:bg-crust-100'
+                )}
+              >
+                <User className="w-5 h-5" />
+                <span>Account</span>
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className={cn(
+                  'hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                  pathname === '/login'
+                    ? 'text-crust-900 bg-crust-100'
+                    : 'text-crust-700 hover:text-crust-900 hover:bg-crust-100'
+                )}
+              >
+                <User className="w-5 h-5" />
+                <span>Sign In</span>
+              </Link>
+            )}
+
             {/* Cart Button */}
             <CartBadge
               onClick={() => setIsCartOpen(true)}

@@ -1,0 +1,49 @@
+$ npm run dev
+
+> lartisan-baking-atelier@1.0.0 dev
+> next dev --turbopack
+
+⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
+▲ Next.js 16.1.4 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.2.132:3001
+- Environments: .env
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+✓ Ready in 926ms
+○ Compiling / ...
+prisma:query SELECT "public"."products"."id", "public"."products"."name", "public"."products"."slug", "public"."products"."description", "public"."products"."short_description", "public"."products"."price", "public"."products"."compare_at_price", "public"."products"."gst_rate", "public"."products"."sku", "public"."products"."stock_quantity", "public"."products"."low_stock_threshold", "public"."products"."images", "public"."products"."weight", "public"."products"."is_digital", "public"."products"."is_available", "public"."products"."is_featured", "public"."products"."meta_title", "public"."products"."meta_description", "public"."products"."category_id", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE ("public"."products"."is_featured" = $1 AND "public"."products"."is_available" = $2) ORDER BY "public"."products"."created_at" DESC LIMIT $3 OFFSET $4
+prisma:query SELECT "public"."categories"."id", "public"."categories"."name", "public"."categories"."slug", "public"."categories"."description", "public"."categories"."image", "public"."categories"."sort_order", "public"."categories"."is_active", "public"."categories"."created_at", "public"."categories"."updated_at" FROM "public"."categories" WHERE "public"."categories"."id" IN ($1,$2,$3) OFFSET $4
+ GET / 200 in 5.1s (compile: 4.5s, render: 599ms)
+ GET /api/account/profile 401 in 1979ms (compile: 1955ms, render: 24ms)
+ GET /site.webmanifest 404 in 839ms (compile: 690ms, render: 149ms)
+ GET /favicon-16x16.png 404 in 787ms (compile: 713ms, render: 74ms)
+prisma:query SELECT 1
+prisma:query SELECT "public"."products"."id", "public"."products"."name", "public"."products"."slug", "public"."products"."description", "public"."products"."short_description", "public"."products"."price", "public"."products"."compare_at_price", "public"."products"."gst_rate", "public"."products"."sku", "public"."products"."stock_quantity", "public"."products"."low_stock_threshold", "public"."products"."images", "public"."products"."weight", "public"."products"."is_digital", "public"."products"."is_available", "public"."products"."is_featured", "public"."products"."meta_title", "public"."products"."meta_description", "public"."products"."category_id", "public"."products"."created_at", "public"."products"."updated_at" FROM "public"."products" WHERE "public"."products"."is_available" = $1 ORDER BY "public"."products"."created_at" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."categories"."id", "public"."categories"."name", "public"."categories"."slug", "public"."categories"."description", "public"."categories"."image", "public"."categories"."sort_order", "public"."categories"."is_active", "public"."categories"."created_at", "public"."categories"."updated_at" FROM "public"."categories" WHERE "public"."categories"."id" IN ($1,$2,$3) OFFSET $4
+prisma:query SELECT MIN("price"), MAX("price") FROM (SELECT "public"."products"."price" FROM "public"."products" WHERE "public"."products"."is_available" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."products"."id" FROM "public"."products" WHERE "public"."products"."is_available" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT "public"."categories"."id", "public"."categories"."name", "public"."categories"."slug", "public"."categories"."description", "public"."categories"."image", "public"."categories"."sort_order", "public"."categories"."is_active", "public"."categories"."created_at", "public"."categories"."updated_at" FROM "public"."categories" WHERE 1=1 ORDER BY "public"."categories"."name" ASC OFFSET $1
+ GET /shop 200 in 1595ms (compile: 1360ms, render: 235ms)
+ GET /site.webmanifest 404 in 148ms (compile: 18ms, render: 130ms)
+ GET /login 200 in 670ms (compile: 634ms, render: 36ms)
+ GET /site.webmanifest 404 in 141ms (compile: 86ms, render: 55ms)
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."products"."id" FROM "public"."products" WHERE "public"."products"."is_available" = $1 OFFSET $2) AS "sub"
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."orders"."id" FROM "public"."orders" WHERE 1=1 OFFSET $1) AS "sub"
+prisma:query SELECT COUNT(*) AS "_count._all" FROM (SELECT "public"."users"."id" FROM "public"."users" WHERE 1=1 OFFSET $1) AS "sub"
+prisma:query SELECT SUM("total") FROM (SELECT "public"."orders"."total" FROM "public"."orders" WHERE "public"."orders"."payment_status" = CAST($1::text AS "public"."PaymentStatus") OFFSET $2) AS "sub"
+prisma:query SELECT COUNT("public"."orders"."status"), "public"."orders"."status"::text FROM "public"."orders" WHERE 1=1 GROUP BY "public"."orders"."status" OFFSET $1
+prisma:query 
+      SELECT id, name, stock_quantity as "stockQuantity"
+      FROM products
+      WHERE is_available = true AND stock_quantity <= low_stock_threshold
+      LIMIT 5
+    
+prisma:query SELECT "public"."orders"."id", "public"."orders"."order_number", "public"."orders"."user_id", "public"."orders"."status"::text, "public"."orders"."payment_status"::text, "public"."orders"."payment_method", "public"."orders"."subtotal", "public"."orders"."gst_amount", "public"."orders"."shipping_cost", "public"."orders"."discount_amount", "public"."orders"."total", "public"."orders"."customer_email", "public"."orders"."customer_name", "public"."orders"."customer_phone", "public"."orders"."shipping_address", "public"."orders"."billing_address", "public"."orders"."stripe_payment_intent_id", "public"."orders"."stripe_customer_id", "public"."orders"."notes", "public"."orders"."internal_notes", "public"."orders"."tracking_number", "public"."orders"."shipped_at", "public"."orders"."delivered_at", "public"."orders"."created_at", "public"."orders"."updated_at" FROM "public"."orders" WHERE 1=1 ORDER BY "public"."orders"."created_at" DESC LIMIT $1 OFFSET $2
+ GET /admin 307 in 985ms (compile: 747ms, render: 238ms)
+ GET /admin/login 200 in 594ms (compile: 490ms, render: 104ms)
+ GET /site.webmanifest 404 in 65ms (compile: 8ms, render: 57ms)
+✓ Finished writing to filesystem cache in 10.9s
+
