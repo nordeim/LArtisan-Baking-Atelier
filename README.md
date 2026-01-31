@@ -1,3 +1,5 @@
+<img width="1524" height="975" alt="image" src="https://github.com/user-attachments/assets/ade4862e-76af-4d7b-b051-5eacf8302b5d" />
+
 <div align="center">
 
 # 🥐 L'Artisan Baking Atelier
