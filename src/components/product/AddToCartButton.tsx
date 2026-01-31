@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useCart } from '@/hooks/useCart';
 import type { ProductWithCategory } from '@/lib/shop';
 
 /**
@@ -23,19 +24,32 @@ type ButtonState = 'idle' | 'loading' | 'success' | 'error';
 export function AddToCartButton({ product }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1);
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
+  const { addItem } = useCart();
 
   const handleAddToCart = async () => {
     setButtonState('loading');
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: Number(product.price),
+      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+      image: product.images[0] || '/images/placeholder.jpg',
+      categoryName: product.category?.name || null,
+      stockQuantity: product.stockQuantity,
+      isAvailable: product.isAvailable,
+      gstRate: 0.09, // Singapore GST rate
+    };
     
-    // TODO: Implement actual cart logic
-    console.log('Adding to cart:', { productId: product.id, quantity });
+    try {
+      addItem(cartItem, quantity);
+      setButtonState('success');
+    } catch {
+      setButtonState('error');
+    }
     
-    setButtonState('success');
-    
-    // Reset after showing success
+    // Reset after showing success/error
     setTimeout(() => {
       setButtonState('idle');
     }, 2000);
@@ -64,7 +78,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
             <button
               onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
               className="px-3 py-2 hover:bg-crust-50 transition-colors disabled:opacity-50"
-              disabled={quantity >= product.stockQuantity}
+              disabled={quantity >= product.stockQuantity || quantity >= 10}
               aria-label="Increase quantity"
             >
               +
@@ -131,6 +145,18 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
             >
               <Check className="w-5 h-5" />
               Added to Cart!
+            </motion.span>
+          )}
+          
+          {buttonState === 'error' && (
+            <motion.span
+              key="error"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-2"
+            >
+              Failed to Add
             </motion.span>
           )}
         </AnimatePresence>

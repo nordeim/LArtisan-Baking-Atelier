@@ -19,9 +19,6 @@ export default function StoreLayout({
 }) {
   // State for mobile navigation
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  
-  // State for cart count (placeholder - will be connected to cart context later)
-  const [cartCount] = useState(0);
 
   return (
     <>
@@ -36,7 +33,6 @@ export default function StoreLayout({
       <div className="flex flex-col min-h-screen bg-crust-50">
         {/* Header */}
         <Header
-          cartCount={cartCount}
           onMenuClick={() => setMobileNavOpen(true)}
           isMobileMenuOpen={mobileNavOpen}
         />

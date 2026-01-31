@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { mainNavItems, isNavItemActive } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import { CartBadge } from '@/components/cart/CartBadge';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 
 /**
  * Header Component
@@ -15,8 +17,6 @@ import { cn } from '@/lib/utils';
  */
 
 interface HeaderProps {
-  /** Number of items in cart (displayed as badge) */
-  cartCount?: number;
   /** Callback when mobile menu button is clicked */
   onMenuClick?: () => void;
   /** Whether mobile menu is currently open */
@@ -24,12 +24,12 @@ interface HeaderProps {
 }
 
 export function Header({
-  cartCount = 0,
   onMenuClick,
   isMobileMenuOpen = false,
 }: HeaderProps) {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Track scroll position for background transition
   useEffect(() => {
@@ -121,22 +121,10 @@ export function Header({
           {/* Right Actions */}
           <div className="flex items-center gap-3">
             {/* Cart Button */}
-            <Link
-              href="/cart"
-              className={cn(
-                'relative p-2 rounded-lg transition-colors',
-                'text-crust-700 hover:text-crust-900 hover:bg-crust-100',
-                pathname === '/cart' && 'bg-crust-100 text-crust-900'
-              )}
-              aria-label={`Shopping cart${cartCount > 0 ? `, ${cartCount} items` : ''}`}
-            >
-              <ShoppingBag className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-crust-400 text-crust-950 text-xs font-bold rounded-full flex items-center justify-center">
-                  {cartCount > 99 ? '99+' : cartCount}
-                </span>
-              )}
-            </Link>
+            <CartBadge
+              onClick={() => setIsCartOpen(true)}
+              className="p-2 rounded-lg hover:bg-crust-100 transition-colors"
+            />
 
             {/* Mobile Menu Button */}
             <button
@@ -160,6 +148,9 @@ export function Header({
           </div>
         </nav>
       </div>
+
+      {/* Cart Drawer */}
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }
