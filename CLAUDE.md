@@ -1,8 +1,8 @@
 # L'Artisan Baking Atelier - AI Agent Briefing Document
 
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Last Updated:** 2026-01-31  
-**Project Status:** Core Implementation Complete (Phases 1-7.4)
+**Project Status:** Core Implementation Complete (Phases 1-8)
 
 ---
 
@@ -11,11 +11,11 @@
 L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baking school in Singapore. The platform is built with Next.js 16, React 19, TypeScript 5.9, Tailwind CSS v4, and PostgreSQL 16. It features a complete shopping cart, Stripe payment integration with Singapore GST compliance (9%), and a responsive, accessible UI.
 
 **Current State:**
-- ✅ Phases 1-7 Complete (Foundation through Stripe Integration)
+- ✅ Phases 1-8 Complete (Foundation through Admin Dashboard)
 - ✅ 84+ passing unit tests
-- ✅ Production build verified
+- ✅ Production build verified (30 routes)
 - ✅ TypeScript strict mode compliance
-- ⏳ Phases 8-10 Pending (User Dashboard, Admin, Deployment)
+- ⏳ Phases 9-10 Pending (User Dashboard, Deployment)
 
 ---
 
@@ -76,8 +76,14 @@ src/
 │   │       ├── page.tsx            # Checkout with Stripe Elements
 │   │       └── success/
 │   │           └── page.tsx        # Order confirmation
-│   ├── admin/                      # Admin routes (skeleton)
-│   │   └── layout.tsx
+│   ├── admin/                      # Admin routes (route groups)
+│   │   ├── (protected)/            # Protected admin routes
+│   │   │   ├── layout.tsx          # Auth-check layout
+│   │   │   ├── page.tsx            # Dashboard
+│   │   │   ├── orders/             # Order management
+│   │   │   └── products/           # Product CRUD
+│   │   └── (public)/               # Public admin routes
+│   │       └── login/              # Admin login
 │   └── api/
 │       ├── checkout/route.ts       # POST: Create payment intent
 │       ├── webhooks/stripe/route.ts # POST: Handle Stripe webhooks
@@ -463,19 +469,21 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 ## Pending Work (Phases 8-10)
 
-### Phase 8: User Dashboard & My Courses
+### Phase 8: Admin Dashboard ✅ COMPLETE
+- [x] Admin authentication (JWT-based)
+- [x] Protected route groups
+- [x] Dashboard with stats
+- [x] Order management (list, detail, status updates)
+- [x] Product CRUD (create, read, update, delete)
+- [x] Low stock alerts
+- [x] Responsive admin sidebar
+
+### Phase 9: User Dashboard & My Courses
 - [ ] User account page
 - [ ] Order history
 - [ ] My courses access
 - [ ] Profile management
 - [ ] Password reset flow
-
-### Phase 9: Admin Dashboard Foundation
-- [ ] Admin login
-- [ ] Product CRUD
-- [ ] Order management
-- [ ] Customer management
-- [ ] Analytics dashboard
 
 ### Phase 10: Production Deployment
 - [ ] Production environment variables

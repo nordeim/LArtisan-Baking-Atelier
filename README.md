@@ -47,6 +47,7 @@
 - 📱 **Mobile-First** - Responsive design optimized for all devices
 - 🔒 **PDPA Compliant** - Singapore data protection compliance built-in
 - 🧪 **Well Tested** - 84+ unit tests with Vitest
+- 🎛️ **Admin Dashboard** - Full CRUD for orders and products
 
 ---
 
@@ -65,8 +66,10 @@
 - 👤 **Guest Checkout** - No account required to purchase
 
 ### Admin Capabilities
-- 📊 **Order Management** - Track orders, update status
+- 📊 **Order Management** - Track orders, update status, view details
 - 📦 **Inventory Control** - Stock management with low-stock alerts
+- 📝 **Product CRUD** - Create, edit, delete products with image management
+- 📈 **Dashboard Analytics** - Revenue stats, order counts, low stock warnings
 - 👥 **Customer Management** - View customer data (PDPA compliant)
 
 ### Technical Features
