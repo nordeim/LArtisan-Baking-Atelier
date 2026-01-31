@@ -12,4 +12,14 @@ Awesome job on your meticulous analysis, planning and execution. Please keep up 
 
 Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously review the runtime error @browser_error.txt , validate the error against the actual codebase to identify the root cause. Then meticulously plan and fix the error after validating the error and the root cause.
 
+---
+
+Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously investigate how be
+st to address loading `http://localhost:3001/courses` gives 404 error, then meticulously create a remediation plan to fix it. review and validate the remediation plan before meticulously proceeding to execute it.
+
+---
+
+Awesome job on your meticulous analysis, planning and execution. Please keep up the good work in your rigorous and meticulous approach to planning and execution. Now, please meticulously investigate/check
+the following nav links in the bottom footer bar, then meticulously plan to make these links active and pointing to some valid content that make sense, create best dummy content that is applicable and appropriate for each of the links i
+f necessary.
 

@@ -83,6 +83,11 @@ const nextConfig: NextConfig = {
         destination: '/admin/login',
         permanent: true,
       },
+      {
+        source: '/courses',
+        destination: '/shop',
+        permanent: true,
+      },
     ];
   },
 

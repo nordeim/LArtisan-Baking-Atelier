@@ -52,7 +52,7 @@ export const mainNavItems: NavItem[] = [
     description: 'Browse our artisan bakery products',
   },
   {
-    href: '/courses',
+    href: '/shop',
     label: 'Courses',
     description: 'Learn from master bakers',
   },
@@ -233,7 +233,7 @@ export function isNavItemActive(itemHref: string, currentPath: string): boolean 
     return true;
   }
   
-  // For /shop, also active on product pages
+  // For /shop (Courses), also active on product pages
   if (itemHref === '/shop' && currentPath.startsWith('/shop/')) {
     return true;
   }
