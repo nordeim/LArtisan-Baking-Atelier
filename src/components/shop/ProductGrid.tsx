@@ -6,10 +6,10 @@
  */
 
 import { ProductCard } from './ProductCard';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 interface ProductGridProps {
-  products: ProductWithCategory[];
+  products: SerializedProduct[];
 }
 
 export function ProductGrid({ products }: ProductGridProps) {

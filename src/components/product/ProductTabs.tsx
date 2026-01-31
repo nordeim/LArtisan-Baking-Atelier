@@ -3,7 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CurriculumAccordion } from './CurriculumAccordion';
 import { ReviewSection } from './ReviewSection';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Product Tabs Component
@@ -12,7 +12,7 @@ import type { ProductWithCategory } from '@/lib/shop';
  */
 
 interface ProductTabsProps {
-  product: ProductWithCategory;
+  product: SerializedProduct;
 }
 
 export function ProductTabs({ product }: ProductTabsProps) {

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { getRelatedProducts } from '@/lib/shop';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Related Products Component
@@ -48,7 +48,7 @@ export async function RelatedProducts({ productId, categoryId }: RelatedProducts
   );
 }
 
-function RelatedProductCard({ product }: { product: ProductWithCategory }) {
+function RelatedProductCard({ product }: { product: SerializedProduct }) {
   return (
     <Link
       href={`/shop/${product.slug}`}
@@ -74,7 +74,7 @@ function RelatedProductCard({ product }: { product: ProductWithCategory }) {
           {product.name}
         </h3>
         <p className="mt-2 text-sm font-medium text-crust-900">
-          {formatPrice(Number(product.price), { decimals: 0 })}
+          {formatPrice(product.price, { decimals: 0 })}
         </p>
       </div>
     </Link>

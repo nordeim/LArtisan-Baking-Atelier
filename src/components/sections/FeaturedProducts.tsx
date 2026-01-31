@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Clock, Play, Star, ArrowRight } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import type { ProductWithCategory } from '@/types/database';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Featured Products Section
@@ -15,7 +15,7 @@ import type { ProductWithCategory } from '@/types/database';
  */
 
 interface FeaturedProductsProps {
-  products: ProductWithCategory[];
+  products: SerializedProduct[];
 }
 
 export function FeaturedProducts({ products }: FeaturedProductsProps) {
@@ -131,11 +131,11 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex items-baseline gap-2">
                         <span className="text-2xl font-bold text-white">
-                          {formatPrice(Number(featuredProduct.price), { decimals: 0 })}
+                          {formatPrice(featuredProduct.price, { decimals: 0 })}
                         </span>
                         {featuredProduct.compareAtPrice && (
                           <span className="text-sm text-crust-400 line-through">
-                            {formatPrice(Number(featuredProduct.compareAtPrice), { decimals: 0 })}
+                            {formatPrice(featuredProduct.compareAtPrice, { decimals: 0 })}
                           </span>
                         )}
                       </div>
@@ -204,7 +204,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
                   {/* Price & CTA */}
                   <div className="flex items-center justify-between mt-5 pt-5 border-t border-crust-100">
                     <span className="text-xl font-bold text-crust-900">
-                      {formatPrice(Number(product.price), { decimals: 0 })}
+                      {formatPrice(product.price, { decimals: 0 })}
                     </span>
                     <span className="px-4 py-2 bg-crust-100 text-crust-700 text-sm font-semibold rounded-xl group-hover:bg-crust-200 transition-colors">
                       View Course

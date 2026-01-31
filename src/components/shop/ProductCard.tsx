@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Clock, Play, Star, ArrowRight } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Product Card Component
@@ -15,7 +15,7 @@ import type { ProductWithCategory } from '@/lib/shop';
  */
 
 interface ProductCardProps {
-  product: ProductWithCategory;
+  product: SerializedProduct;
   index?: number;
   featured?: boolean;
 }
@@ -24,7 +24,7 @@ export function ProductCard({ product, index = 0, featured = false }: ProductCar
   // Calculate discount percentage
   const discountPercent = product.compareAtPrice
     ? Math.round(
-        (1 - Number(product.price) / Number(product.compareAtPrice)) * 100
+        (1 - product.price / product.compareAtPrice) * 100
       )
     : 0;
 
@@ -110,11 +110,11 @@ export function ProductCard({ product, index = 0, featured = false }: ProductCar
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-crust-100">
             <div className="flex items-baseline gap-2">
               <span className="text-xl font-bold text-crust-900">
-                {formatPrice(Number(product.price), { decimals: 0 })}
+                {formatPrice(product.price, { decimals: 0 })}
               </span>
               {product.compareAtPrice && (
                 <span className="text-sm text-crust-400 line-through">
-                  {formatPrice(Number(product.compareAtPrice), { decimals: 0 })}
+                  {formatPrice(product.compareAtPrice, { decimals: 0 })}
                 </span>
               )}
             </div>

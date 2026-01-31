@@ -16,6 +16,35 @@ export interface ProductWithCategory extends Product {
   category: Category | null;
 }
 
+/**
+ * Serialized product type for client components
+ * All Decimal fields are converted to numbers for serialization
+ */
+export interface SerializedProduct {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  shortDescription: string | null;
+  price: number;
+  compareAtPrice: number | null;
+  gstRate: number;
+  sku: string;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  images: string[];
+  weight: number | null;
+  isDigital: boolean;
+  isAvailable: boolean;
+  isFeatured: boolean;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  categoryId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: Category | null;
+}
+
 export interface ShopFilters {
   category?: string;
   minPrice?: number;
@@ -27,7 +56,7 @@ export interface ShopFilters {
 }
 
 export interface ShopResult {
-  products: ProductWithCategory[];
+  products: SerializedProduct[];
   total: number;
   totalPages: number;
   currentPage: number;
@@ -140,15 +169,11 @@ export async function getProducts(filters: ShopFilters = {}): Promise<ShopResult
 
   const totalPages = Math.ceil(total / limit);
 
-  // Convert Decimal prices to numbers
-  const productsWithNumbers = products.map((product: ProductWithCategory) => ({
-    ...product,
-    price: product.price,
-    compareAtPrice: product.compareAtPrice,
-  }));
+  // Serialize products for client components (convert Decimal to number)
+  const serializedProducts = products.map((product) => serializeProduct(product));
 
   return {
-    products: productsWithNumbers as ProductWithCategory[],
+    products: serializedProducts,
     total,
     totalPages,
     currentPage: page,
@@ -164,9 +189,9 @@ export async function getProducts(filters: ShopFilters = {}): Promise<ShopResult
  * Fetch a single product by slug
  * 
  * @param slug - Product slug
- * @returns Product with category or null
+ * @returns Product with category or null (serialized for client components)
  */
-export async function getProductBySlug(slug: string): Promise<ProductWithCategory | null> {
+export async function getProductBySlug(slug: string): Promise<SerializedProduct | null> {
   const product = await prisma.product.findUnique({
     where: { slug },
     include: {
@@ -174,7 +199,9 @@ export async function getProductBySlug(slug: string): Promise<ProductWithCategor
     },
   });
 
-  return product as ProductWithCategory | null;
+  if (!product) return null;
+
+  return serializeProduct(product);
 }
 
 /**
@@ -183,13 +210,13 @@ export async function getProductBySlug(slug: string): Promise<ProductWithCategor
  * @param productId - Current product ID
  * @param categoryId - Category ID for matching
  * @param limit - Number of products to fetch
- * @returns Related products
+ * @returns Related products (serialized for client components)
  */
 export async function getRelatedProducts(
   productId: string,
   categoryId: string | null,
   limit = 4
-): Promise<ProductWithCategory[]> {
+): Promise<SerializedProduct[]> {
   const products = await prisma.product.findMany({
     where: {
       id: { not: productId },
@@ -205,16 +232,16 @@ export async function getRelatedProducts(
     },
   });
 
-  return products as ProductWithCategory[];
+  return products.map((product) => serializeProduct(product));
 }
 
 /**
  * Fetch featured products for homepage
  * 
  * @param limit - Number of products to fetch
- * @returns Featured products
+ * @returns Featured products (serialized for client components)
  */
-export async function getFeaturedProducts(limit = 4): Promise<ProductWithCategory[]> {
+export async function getFeaturedProducts(limit = 4): Promise<SerializedProduct[]> {
   const products = await prisma.product.findMany({
     where: {
       isAvailable: true,
@@ -226,5 +253,43 @@ export async function getFeaturedProducts(limit = 4): Promise<ProductWithCategor
     },
   });
 
-  return products as ProductWithCategory[];
+  return products.map((product) => serializeProduct(product));
+}
+
+// ============================================
+// Serialization Utilities
+// ============================================
+
+/**
+ * Serialize a product for client components
+ * Converts Prisma Decimal fields to plain JavaScript numbers
+ * and Date objects to ISO strings
+ */
+export function serializeProduct<T extends { category: Category | null }>(
+  product: Product & T
+): SerializedProduct {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    shortDescription: product.shortDescription,
+    price: Number(product.price),
+    compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+    gstRate: Number(product.gstRate),
+    sku: product.sku,
+    stockQuantity: product.stockQuantity,
+    lowStockThreshold: product.lowStockThreshold,
+    images: product.images,
+    weight: product.weight ? Number(product.weight) : null,
+    isDigital: product.isDigital,
+    isAvailable: product.isAvailable,
+    isFeatured: product.isFeatured,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
+    categoryId: product.categoryId,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
+    category: product.category,
+  };
 }

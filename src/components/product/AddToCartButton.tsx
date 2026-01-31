@@ -6,7 +6,7 @@ import { ShoppingCart, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/useCart';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Add to Cart Button Component
@@ -16,7 +16,7 @@ import type { ProductWithCategory } from '@/lib/shop';
  */
 
 interface AddToCartButtonProps {
-  product: ProductWithCategory;
+  product: SerializedProduct;
 }
 
 type ButtonState = 'idle' | 'loading' | 'success' | 'error';
@@ -33,13 +33,13 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       id: product.id,
       name: product.name,
       slug: product.slug,
-      price: Number(product.price),
-      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
       image: product.images[0] || '/images/placeholder.jpg',
       categoryName: product.category?.name || null,
       stockQuantity: product.stockQuantity,
       isAvailable: product.isAvailable,
-      gstRate: 0.09, // Singapore GST rate
+      gstRate: product.gstRate,
     };
     
     try {

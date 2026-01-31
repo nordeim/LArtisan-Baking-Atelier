@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Product Hero Component
@@ -14,7 +14,7 @@ import type { ProductWithCategory } from '@/lib/shop';
  */
 
 interface ProductHeroProps {
-  product: ProductWithCategory;
+  product: SerializedProduct;
 }
 
 export function ProductHero({ product }: ProductHeroProps) {

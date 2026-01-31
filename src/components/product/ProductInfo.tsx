@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Star, Clock, Play, Users, Award } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import type { ProductWithCategory } from '@/lib/shop';
+import type { SerializedProduct } from '@/lib/shop';
 
 /**
  * Product Info Component
@@ -12,13 +12,13 @@ import type { ProductWithCategory } from '@/lib/shop';
  */
 
 interface ProductInfoProps {
-  product: ProductWithCategory;
+  product: SerializedProduct;
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
   const discountPercent = product.compareAtPrice
     ? Math.round(
-        (1 - Number(product.price) / Number(product.compareAtPrice)) * 100
+        (1 - product.price / product.compareAtPrice) * 100
       )
     : 0;
 
