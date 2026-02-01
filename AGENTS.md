@@ -209,6 +209,68 @@ You will commit boldly - whether that's brutalist restraint, editorial asymmetry
 **Last Updated:** 2026-01-31
 **Project Status:** Phases 1-9 Complete. Phase 10 (Testing & QA) In Progress.
 
+---
+
+🎯 WHAT — The Project
+
+L'Artisan Baking Atelier is a Next.js 16.1.4 e-commerce platform featuring:
+
+ Feature Category   Implementation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Frontend           Next.js 16 App Router + React 19 + Tailwind CSS v4
+ Backend            Next.js API Routes + Prisma ORM + PostgreSQL 16
+ Payments           Stripe integration with Singapore GST (9%) compliance
+ Authentication     JWT-based auth with Jose (Edge-compatible)
+ Testing            Vitest (84 unit tests) + Playwright (E2E configured)
+ Design             "Édition Boulangerie" aesthetic — warm OKLCH palette
+
+Design Concept: "Édition Boulangerie" — A luxury culinary magazine aesthetic merged with the intimate warmth of a master baker's atelier.
+
+🎯 WHY — The Rationale
+
+ Design Decision          Rationale
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Tailwind CSS v4          3.78x faster full builds, 8.8x faster incremental rebuilds, CSS-first paradigm
+ OKLCH Colors             Better gamut coverage, perceptual uniformity for the "crust" palette
+ Integer-based Currency   Avoid floating-point errors for financial calculations (Singapore GST compliance)
+ JWT with Jose            Edge runtime compatible, HTTP-only secure cookies
+ Prisma + PostgreSQL      Type-safe ORM, DECIMAL(10,4) precision for financial data
+ PDPA Compliance          Singapore data protection requirements (deletion/export flags)
+
+🎯 HOW — The Architecture
+
+Technology Stack (Locked Versions):
+
+ Technology     Version   Purpose
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Next.js        16.1.4    App Router, Turbopack, Server Components
+ React          19.2.3    Concurrent features
+ TypeScript     5.9.3     Strict mode, no unchecked indexed access
+ Tailwind CSS   4.1.18    CSS-first theming with @theme
+ Prisma         6.6.0     ORM (downgraded from 7.x per AGENTS.md)
+ PostgreSQL     16        Primary database
+ Stripe         20.3.0    PaymentIntents API
+ Jose           6.1.3     JWT signing/verification
+
+Key Architectural Patterns:
+
+1. CSS-First Theming (globals.css):
+   @import "tailwindcss";
+   @theme {
+   --color-crust-400: oklch(0.75 0.1 70);
+   --font-display: "Playfair Display", Georgia, serif;
+   }
+2. Financial Precision (gst-calculator.ts):
+  • Prices stored as integers (cents)
+  • GST calculation: subtotal = total / 1.09
+  • No floating-point arithmetic
+3. Cart State Management:
+  • localStorage with 30-min expiration
+  • Cross-tab sync via storage event
+  • React Context + useReducer pattern
+
+---
+
 L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baking school in Singapore. The platform is built with Next.js 16, React 19, TypeScript 5.9, Tailwind CSS v4, and PostgreSQL 16. It features a complete shopping cart, Stripe payment integration with Singapore GST compliance (9%), and a responsive, accessible UI.
 
 **Current Status:**

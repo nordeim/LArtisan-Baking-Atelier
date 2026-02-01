@@ -1,0 +1,247 @@
+# ============================================
+# L'Artisan Baking Atelier - Production Docker Compose
+# Multi-service production deployment with Nginx, SSL, and monitoring
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # Nginx Reverse Proxy (Load Balancer)
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: artisan_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - app
+    networks:
+      - artisan_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # ============================================
+  # Next.js Application (2+ replicas)
+  # ============================================
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-artisan-baking-atelier}/lartisan-baking-atelier:production-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      # Database
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_URL: ${DIRECT_URL}
+      
+      # Redis
+      REDIS_URL: ${REDIS_URL}
+      
+      # Authentication
+      JWT_SECRET: ${JWT_SECRET}
+      NEXTAUTH_URL: ${NEXT_PUBLIC_APP_URL}
+      
+      # Stripe
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+      
+      # Sentry
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+      
+      # Email
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+      
+      # App
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      NEXT_TELEMETRY_DISABLED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - artisan_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: pause
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # PostgreSQL Database (Primary)
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: artisan_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-artisan}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-artisan_atelier}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "127.0.0.1:5432:5432"  # Only expose to localhost
+    networks:
+      - artisan_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-artisan} -d ${DB_NAME:-artisan_atelier}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # Redis (Session & Cache)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: artisan_redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"  # Only expose to localhost
+    networks:
+      - artisan_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ============================================
+  # Database Backup Service (Scheduled)
+  # ============================================
+  backup:
+    image: postgres:16-alpine
+    container_name: artisan_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-artisan}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-artisan_atelier}
+      POSTGRES_HOST: postgres
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET}
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./backups:/backups
+    command: >
+      sh -c "
+        echo 'Backup service initialized' &&
+        while true; do
+          /scripts/backup-db.sh || true
+          sleep 86400
+        done
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - artisan_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+# ============================================
+# Named Volumes
+# ============================================
+volumes:
+  postgres_data:
+    name: artisan_postgres_data
+    driver: local
+  redis_data:
+    name: artisan_redis_data
+    driver: local
+  nginx_cache:
+    name: artisan_nginx_cache
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  artisan_network:
+    name: artisan_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

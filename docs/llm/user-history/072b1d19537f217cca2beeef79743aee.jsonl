@@ -1,0 +1,6 @@
+{"content":"/login"}
+{"content":"tell me about the project in this folder"}
+{"content":"/exit"}
+{"content":"please list the skills and capabilities in your inventory and can use"}
+{"content":"based on the codebase in this project folder, list the relevant skills in your inventory for design, code review, code/security audit. then based on the current codebase, combine the relevant skills into one composite skill applicable for similar projects. include in your new composite skill creation, relevant information from @TAILWIND_V4_0_COMPREHENSIVE_GUIDE.md. create your new skill with an appropriate name under the `/home/project/Cosmic-Voyager/skills/` folder"}
+{"content":"/exit"}

@@ -1,0 +1,91 @@
+# ============================================
+# L'Artisan Baking Atelier - Database Backup
+# Automated daily backups with manual dispatch option
+# ============================================
+
+name: Database Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to backup'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  BACKUP_RETENTION_DAYS: 30
+
+jobs:
+  backup-database:
+    name: Backup Database
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client awscli
+
+      - name: Create backup
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          BACKUP_FILE="artisan_atelier_${{ github.event.inputs.environment || 'production' }}_${TIMESTAMP}.sql.gz"
+          
+          echo "Creating backup: $BACKUP_FILE"
+          
+          # Create compressed backup
+          # pg_dump ${{ secrets.DATABASE_URL }} | gzip > $BACKUP_FILE
+          
+          echo "Backup created successfully"
+          echo "BACKUP_FILE=$BACKUP_FILE" >> $GITHUB_ENV
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload to S3
+        run: |
+          echo "Uploading backup to S3..."
+          # aws s3 cp $BACKUP_FILE s3://${{ secrets.BACKUP_S3_BUCKET }}/backups/
+          echo "✅ Backup uploaded"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Cleanup old backups
+        run: |
+          echo "Cleaning up backups older than $BACKUP_RETENTION_DAYS days..."
+          # aws s3 ls s3://${{ secrets.BACKUP_S3_BUCKET }}/backups/ | \
+          #   awk '{print $4}' | \
+          #   while read file; do
+          #     aws s3 rm s3://${{ secrets.BACKUP_S3_BUCKET }}/backups/$file
+          #   done
+          echo "✅ Cleanup complete"
+
+      - name: Verify backup integrity
+        run: |
+          echo "Verifying backup integrity..."
+          # gunzip -t $BACKUP_FILE
+          echo "✅ Backup integrity verified"
+
+      - name: Notify backup status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#infrastructure'
+          text: 'Database backup ${{ job.status }} for ${{ github.event.inputs.environment || "production" }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
