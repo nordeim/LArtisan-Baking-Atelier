@@ -65,11 +65,12 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
   
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  orders        Order[]
-  reviews       Review[]
-  digitalAccess DigitalAccess[]
+  accounts       Account[]
+  sessions       Session[]
+  orders         Order[]
+  reviews        Review[]
+  digitalAccess  DigitalAccess[]
+  lessonProgress LessonProgress[]
   
   @@map("users")
   @@index([email])
@@ -174,6 +175,7 @@ model Product {
   orderItems    OrderItem[]
   reviews       Review[]
   digitalAccess DigitalAccess[]
+  lessons       CourseLesson[]
   
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -350,6 +352,9 @@ model DigitalAccess {
   
   // Content Progress (for courses)
   progress Json? // Store progress data
+  
+  // Relations
+  lessonProgress LessonProgress[]
   
   @@unique([userId, productId])
   @@map("digital_access")

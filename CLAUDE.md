@@ -1,8 +1,8 @@
 # L'Artisan Baking Atelier - AI Agent Briefing Document
 
-**Version:** 1.3.0  
+**Version:** 1.4.0  
 **Last Updated:** 2026-02-01  
-**Project Status:** Production Ready (All Phases Complete)
+**Project Status:** Production Ready with Post-Launch Enhancements (Phases 1-11 Complete)
 
 ---
 
@@ -11,14 +11,18 @@
 L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baking school in Singapore. The platform is built with Next.js 16, React 19, TypeScript 5.9, Tailwind CSS v4, and PostgreSQL 16. It features a complete shopping cart, Stripe payment integration with Singapore GST compliance (9%), and a responsive, accessible UI.
 
 **Current State:**
-- ✅ **All Phases Complete** (Phases 1-10)
+- ✅ **All Phases Complete** (Phases 1-11)
 - ✅ 84+ passing unit tests + 4 E2E test suites
-- ✅ Production build verified (44 routes)
+- ✅ Production build verified (46+ routes)
 - ✅ TypeScript strict mode compliance
 - ✅ CI/CD pipeline with GitHub Actions
 - ✅ Sentry error monitoring integrated
 - ✅ Resend email service configured
 - ✅ Automated database backups to S3
+- ✅ GA4 Analytics with e-commerce tracking
+- ✅ SEO optimization (meta tags, JSON-LD, sitemap)
+- ✅ Video content platform with progress tracking
+- ✅ Student progress dashboard with gamification
 
 ---
 
@@ -62,6 +66,7 @@ L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baki
 | Resend | latest | Transactional email service |
 | Sentry | latest | Error monitoring & performance |
 | Playwright | latest | E2E testing |
+| date-fns | latest | Date formatting |
 | GitHub Actions | N/A | CI/CD automation |
 
 ---
@@ -139,12 +144,19 @@ src/
 │   │   ├── CartSummary.tsx         # Totals display
 │   │   ├── CartBadge.tsx           # Header cart icon
 │   │   └── EmptyCart.tsx           # Empty state
-│   └── checkout/                   # Checkout components
-│       ├── CheckoutForm.tsx        # Customer details (React Hook Form)
-│       ├── StripePaymentForm.tsx   # Stripe Elements payment
-│       ├── OrderSummary.tsx        # Cart review sidebar
-│       ├── CheckoutProgress.tsx    # Step indicator
-│       └── EmptyCheckout.tsx       # Empty cart redirect
+│   ├── checkout/                   # Checkout components
+│   │   ├── CheckoutForm.tsx        # Customer details (React Hook Form)
+│   │   ├── StripePaymentForm.tsx   # Stripe Elements payment
+│   │   ├── OrderSummary.tsx        # Cart review sidebar
+│   │   ├── CheckoutProgress.tsx    # Step indicator
+│   │   └── EmptyCheckout.tsx       # Empty cart redirect
+│   └── student/                    # Student progress components (Phase 11)
+│       ├── CourseProgressCard.tsx  # Progress card with CTA
+│       ├── LessonList.tsx          # Lesson list with completion
+│       ├── AchievementBadge.tsx    # Gamification badges
+│       ├── StudyStreak.tsx         # Streak calendar
+│       ├── ProgressOverview.tsx    # Stats dashboard
+│       └── ProgressRing.tsx        # Circular progress indicator
 │
 ├── lib/
 │   ├── validation/
@@ -207,6 +219,8 @@ public/
 7. **OrderItem** - Line items with historical pricing snapshot
 8. **Review** - Product reviews
 9. **DigitalAccess** - Course enrollment tracking (granted on purchase)
+10. **CourseLesson** - Video lessons for courses (Phase 11)
+11. **LessonProgress** - Student lesson progress tracking (Phase 11)
 
 ### Key Schema Decisions
 
@@ -610,6 +624,10 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 | `/api/account/profile` | POST | Change password |
 | `/api/account/orders` | GET | Get order history |
 | `/api/account/courses` | GET | Get digital course access |
+| `/api/account/courses/[id]/progress` | GET/POST | Course progress & updates |
+| `/api/account/progress` | GET | All course progress overview |
+| `/api/account/progress` | POST | Update lesson progress |
+| `/api/account/progress/overview` | GET | Dashboard stats & streaks |
 
 ---
 
@@ -718,6 +736,70 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 - [x] Monitoring (Sentry client/server/edge configs)
 - [x] Email service integration (Resend with templates)
 - [x] E2E test suite (4 comprehensive test files)
+
+### Phase 11: Post-Launch Enhancements ✅ COMPLETE
+
+#### 11.1 Content & Media Enhancement ✅
+- [x] Asset guidelines document (`docs/ASSET_GUIDELINES.md`)
+- [x] Image directory structure (`/public/images/courses/`, `/public/images/uploads/`)
+- [x] Next.js image optimization config with AVIF/WebP support
+- [x] Responsive image sizing strategy
+
+#### 11.2 SEO & Analytics ✅
+- [x] Centralized metadata system (`src/lib/seo/metadata.ts`)
+- [x] JSON-LD structured data (`src/lib/seo/json-ld.ts`)
+  - Organization schema
+  - Product schema
+  - Course schema
+  - BreadcrumbList schema
+  - FAQ schema
+  - Review/Rating schema
+  - LocalBusiness schema
+- [x] Dynamic sitemap generation (`src/app/sitemap.ts`)
+- [x] Robots.txt configuration (`src/app/robots.ts`)
+- [x] GA4 integration with e-commerce tracking
+  - Page view events
+  - Add to cart events
+  - Begin checkout events
+  - Purchase events
+  - Custom course progress events
+
+#### 11.3 Video Content Platform ✅
+- [x] `CourseLesson` model - Video lesson storage
+  - title, description, videoUrl, thumbnailUrl
+  - duration (seconds), order, isPreview
+  - resources (JSON attachments)
+- [x] `LessonProgress` model - Student progress tracking
+  - progressPercent, currentTime (resume position)
+  - completedAt, lastWatchedAt, watchCount
+  - Unique constraint: userId + lessonId
+- [x] Video player component with resume capability
+- [x] Lesson completion tracking API
+
+#### 11.4 Student Progress Dashboard ✅
+- [x] Progress dashboard page (`/account/progress`)
+- [x] Achievement showcase page (`/account/achievements`)
+- [x] Course progress card component
+  - Visual progress bar with percentage
+  - Last accessed timestamp
+  - Continue learning CTA
+- [x] Lesson list component
+  - Ordered lesson display
+  - Completion checkmarks
+  - Lock states for non-preview lessons
+  - Duration display
+- [x] Achievement badge system
+  - 5 rarity tiers (bronze, silver, gold, platinum, special)
+  - Unlock animations
+  - Progress rings for in-progress achievements
+- [x] Study streak component
+  - Consecutive days counter
+  - Calendar heatmap visualization
+  - Longest streak record
+- [x] Progress tracking API endpoints
+  - `GET /api/account/progress` - All course progress
+  - `POST /api/account/progress` - Update lesson progress
+  - `GET /api/account/progress/overview` - Stats & streaks
 
 ---
 

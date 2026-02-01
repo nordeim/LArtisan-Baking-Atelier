@@ -98,6 +98,28 @@ export function formatRelativeTime(date: Date | string | number): string {
   return formatDate(d);
 }
 
+/**
+ * Format duration in seconds to human-readable string
+ * 
+ * @param seconds - Duration in seconds
+ * @returns Formatted duration string (e.g., "1:30", "1:30:00")
+ */
+export function formatDuration(seconds: number): string {
+  if (seconds < 60) {
+    return `0:${seconds.toString().padStart(2, '0')}`;
+  }
+  
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+  
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
 // ============================================
 // String Utilities
 // ============================================
