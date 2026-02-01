@@ -358,3 +358,53 @@ model DigitalAccess {
   @@index([orderId])
   @@index([grantedAt])
 }
+
+
+// ============================================
+// Course Content Models (Phase 11)
+// ============================================
+
+model CourseLesson {
+  id            String   @id @default(cuid())
+  productId     String   @map("product_id")
+  title         String
+  description   String?
+  videoUrl      String   @map("video_url")
+  thumbnailUrl  String?  @map("thumbnail_url")
+  duration      Int      // Duration in seconds
+  order         Int      // Display order
+  isPreview     Boolean  @default(false) @map("is_preview")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  progress   LessonProgress[]
+  
+  @@map("course_lessons")
+  @@index([productId])
+  @@index([order])
+}
+
+model LessonProgress {
+  id               String    @id @default(cuid())
+  userId           String    @map("user_id")
+  lessonId         String    @map("lesson_id")
+  digitalAccessId  String    @map("digital_access_id")
+  progressPercent  Int       @default(0) @map("progress_percent")
+  currentTime      Int       @default(0) @map("current_time") // Last watched position in seconds
+  completedAt      DateTime? @map("completed_at")
+  lastWatchedAt    DateTime  @default(now()) @map("last_watched_at")
+  watchCount       Int       @default(0) @map("watch_count")
+  
+  // Relations
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson        CourseLesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  digitalAccess DigitalAccess @relation(fields: [digitalAccessId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@map("lesson_progress")
+  @@index([userId])
+  @@index([lessonId])
+  @@index([digitalAccessId])
+}

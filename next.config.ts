@@ -13,7 +13,10 @@ const nextConfig: NextConfig = {
 
   // Image optimization configuration
   images: {
-    formats: ['image/webp', 'image/avif'],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400, // 24 hours
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',
@@ -33,8 +36,22 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Vimeo for video thumbnails
+      {
+        protocol: 'https',
+        hostname: 'i.vimeocdn.com',
+        port: '',
+        pathname: '/**',
+      },
+      // Cloudflare Images
+      {
+        protocol: 'https',
+        hostname: '*.cloudflarestream.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
