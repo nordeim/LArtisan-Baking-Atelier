@@ -1,8 +1,8 @@
 # L'Artisan Baking Atelier - AI Agent Briefing Document
 
-**Version:** 1.2.0  
-**Last Updated:** 2026-01-31  
-**Project Status:** Core Implementation Complete (Phases 1-9)
+**Version:** 1.3.0  
+**Last Updated:** 2026-02-01  
+**Project Status:** Production Ready (All Phases Complete)
 
 ---
 
@@ -11,11 +11,14 @@
 L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baking school in Singapore. The platform is built with Next.js 16, React 19, TypeScript 5.9, Tailwind CSS v4, and PostgreSQL 16. It features a complete shopping cart, Stripe payment integration with Singapore GST compliance (9%), and a responsive, accessible UI.
 
 **Current State:**
-- ✅ Phases 1-9 Complete (Foundation through User Dashboard)
-- ✅ 84+ passing unit tests
+- ✅ **All Phases Complete** (Phases 1-10)
+- ✅ 84+ passing unit tests + 4 E2E test suites
 - ✅ Production build verified (44 routes)
 - ✅ TypeScript strict mode compliance
-- ⏳ Phase 10 Pending (Production Deployment)
+- ✅ CI/CD pipeline with GitHub Actions
+- ✅ Sentry error monitoring integrated
+- ✅ Resend email service configured
+- ✅ Automated database backups to S3
 
 ---
 
@@ -51,11 +54,15 @@ L'Artisan Baking Atelier is a full-stack e-commerce platform for an artisan baki
 | React | 19.0.0 | Concurrent features |
 | TypeScript | 5.9.3 | Strict mode, no unchecked indexed access |
 | Tailwind CSS | 4.0.0 | CSS-first configuration (@theme directive) |
-| Prisma | 6.6.0 | Downgraded from 7.x (breaking changes) |
+| Prisma | 6.6.0 | ORM with PostgreSQL adapter |
 | PostgreSQL | 16 | DECIMAL(10,4) for currency precision |
 | Stripe | 20.3.0 | PaymentIntents API |
 | Jose | 6.1.3 | JWT for Edge runtime |
-| bcryptjs | 3.0.3 | 12 rounds hashing |
+| bcryptjs | 3.0.3 | Password hashing |
+| Resend | latest | Transactional email service |
+| Sentry | latest | Error monitoring & performance |
+| Playwright | latest | E2E testing |
+| GitHub Actions | N/A | CI/CD automation |
 
 ---
 
@@ -94,10 +101,11 @@ src/
 │   │   │   └── products/           # Product CRUD
 │   │   └── (public)/               # Public admin routes
 │   │       └── login/              # Admin login
-│   └── api/
-│       ├── checkout/route.ts       # POST: Create payment intent
-│       ├── webhooks/stripe/route.ts # POST: Handle Stripe webhooks
-│       └── health/route.ts         # GET: Health check
+│   ├── api/
+│   │   ├── checkout/route.ts       # POST: Create payment intent
+│   │   ├── webhooks/stripe/route.ts # POST: Handle Stripe webhooks
+│   │   └── health/route.ts         # GET: Health check
+│   └── global-error.tsx            # Global error boundary (Sentry)
 │
 ├── components/
 │   ├── ui/                         # shadcn/ui primitives (18 components)
@@ -155,7 +163,17 @@ src/
 │   ├── shop.ts                     # Product data fetching
 │   ├── navigation.ts               # Nav items and helpers
 │   ├── rate-limit.ts               # Rate limiting utility
-│   └── validation.ts               # Common Zod schemas
+│   ├── validation.ts               # Common Zod schemas
+│   ├── email.ts                    # Resend email service
+│   └── sentry.ts                   # Sentry utility functions
+│
+├── tests/
+│   ├── e2e/                        # Playwright E2E tests
+│   │   ├── auth.spec.ts            # Authentication flows
+│   │   ├── shop.spec.ts            # Shopping experience
+│   │   ├── checkout.spec.ts        # Checkout flow
+│   │   └── admin.spec.ts           # Admin dashboard
+│   └── a11y/                       # Accessibility tests
 │
 ├── hooks/
 │   └── useCart.ts                  # useCart hook for cart context
@@ -402,10 +420,140 @@ npm test -- --watch  # Watch mode
 
 **Config:** `playwright.config.ts`
 
+**Test Suites:**
+| Suite | File | Coverage |
+|-------|------|----------|
+| Authentication | `auth.spec.ts` | Register, login, logout, password reset |
+| Shop | `shop.spec.ts` | Product catalog, filtering, cart |
+| Checkout | `checkout.spec.ts` | Payment flow, Stripe integration |
+| Admin | `admin.spec.ts` | Dashboard, order/product management |
+
 **Run tests:**
 ```bash
 npm run test:e2e      # Headless
 npm run test:e2e:ui   # With UI
+npx playwright test --project=chromium  # Specific browser
+```
+
+---
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflows
+
+Located in `.github/workflows/`:
+
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| CI | `ci.yml` | PR & Push to main/develop | Type check, lint, unit tests, build |
+| E2E | `e2e.yml` | PR & Push to main/develop | Playwright tests with PostgreSQL service |
+| Deploy Staging | `deploy-staging.yml` | Push to `develop` | Auto-deploy to staging environment |
+| Deploy Production | `deploy-production.yml` | Push to `main` | Production deployment with rollback |
+| Backup | `backup.yml` | Daily 2 AM UTC | Automated database backups |
+
+### Required GitHub Secrets
+
+Configure these in repository settings:
+
+```
+SENTRY_DSN                    # Sentry project DSN
+SENTRY_AUTH_TOKEN             # Sentry auth token for source maps
+RESEND_API_KEY                # Resend API key
+AWS_ACCESS_KEY_ID             # AWS access key for backups
+AWS_SECRET_ACCESS_KEY         # AWS secret key
+BACKUP_S3_BUCKET              # S3 bucket for backups
+SLACK_WEBHOOK_URL             # (Optional) Slack notifications
+```
+
+---
+
+## Error Monitoring (Sentry)
+
+### Configuration Files
+
+- `sentry.client.config.ts` - Browser error tracking with Session Replay
+- `sentry.server.config.ts` - Server-side error tracking
+- `sentry.edge.config.ts` - Edge runtime monitoring
+- `instrumentation.ts` - OpenTelemetry registration
+- `src/app/global-error.tsx` - Global error boundary UI
+
+### Usage in Code
+
+```typescript
+import { reportError, setUser, addBreadcrumb } from '@/lib/sentry';
+
+// Report an error
+reportError(error, { context: 'checkout' });
+
+// Set user context
+setUser({ id: user.id, email: user.email });
+
+// Add breadcrumb
+addBreadcrumb('User clicked checkout', 'user-action');
+```
+
+---
+
+## Email Service (Resend)
+
+### Email Templates
+
+Located in `src/lib/email.ts`:
+
+| Template | Function | Trigger |
+|----------|----------|---------|
+| Order Confirmation | `sendOrderConfirmation()` | Payment success webhook |
+| Password Reset | `sendPasswordResetEmail()` | Forgot password request |
+| Welcome | `sendWelcomeEmail()` | New user registration |
+| Order Status Update | `sendOrderStatusUpdate()` | Order status changes |
+
+### Usage
+
+```typescript
+import { sendOrderConfirmation } from '@/lib/email';
+
+await sendOrderConfirmation(customerEmail, {
+  orderNumber: 'ORD-123',
+  items: [...],
+  subtotal: 4495,  // cents
+  gstAmount: 405,  // cents
+  total: 4900,     // cents
+  customerName: 'John Doe',
+});
+```
+
+---
+
+## Database Backup & Restore
+
+### Automated Backups
+
+- **Schedule:** Daily at 2 AM UTC (GitHub Actions)
+- **Destination:** AWS S3 with Intelligent-Tiering
+- **Retention:** 30 days (configurable)
+- **Format:** Compressed PostgreSQL custom format
+
+### Manual Backup
+
+```bash
+# Run backup script
+./scripts/backup-db.sh
+
+# With custom options
+DB_HOST=localhost DB_PASSWORD=secret ./scripts/backup-db.sh
+```
+
+### Restore from Backup
+
+```bash
+# List available backups
+./scripts/restore-db.sh --list
+
+# Restore specific backup
+./scripts/restore-db.sh artisan_atelier_20240115_120000.sql.gz
+
+# Restore from S3
+./scripts/restore-db.sh -s artisan_atelier_latest.sql.gz
 ```
 
 ---
@@ -561,14 +709,15 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 - [x] DigitalAccess model for course enrollment
 - [x] Header account link integration
 
-### Phase 10: Production Deployment
-- [ ] Production environment variables
-- [ ] Docker Compose production config
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Vercel deployment
-- [ ] Database backup strategy
-- [ ] Monitoring (Sentry)
-- [ ] Email service integration (Resend)
+### Phase 10: Production Deployment ✅ COMPLETE
+- [x] Production environment variables (`.env.production.example`)
+- [x] Docker Compose production config (`docker-compose.prod.yml`)
+- [x] CI/CD pipeline (GitHub Actions - 5 workflows)
+- [x] Nginx reverse proxy configuration
+- [x] Database backup strategy (automated to S3)
+- [x] Monitoring (Sentry client/server/edge configs)
+- [x] Email service integration (Resend with templates)
+- [x] E2E test suite (4 comprehensive test files)
 
 ---
 
@@ -644,8 +793,9 @@ npm run db:reset      # Reset database
 
 ### Testing
 ```bash
-npm test              # Unit tests
-npm run test:e2e      # E2E tests
+npm test              # Unit tests (Vitest)
+npm run test:e2e      # E2E tests (Playwright)
+npm run test:e2e:ui   # E2E tests with UI
 npm run type-check    # TypeScript check
 npm run lint          # ESLint
 ```
@@ -654,6 +804,18 @@ npm run lint          # ESLint
 ```bash
 npm run build         # Production build
 npm start             # Start production server
+```
+
+### Production Deployment
+```bash
+# Deploy to production
+docker-compose -f docker-compose.prod.yml up -d
+
+# Run migrations
+docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+
+# View logs
+docker-compose -f docker-compose.prod.yml logs -f app
 ```
 
 ---

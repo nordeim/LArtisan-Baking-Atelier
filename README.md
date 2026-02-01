@@ -48,9 +48,12 @@
 - 🛒 **Smart Cart** - Persistent cart with localStorage, cross-tab sync
 - 📱 **Mobile-First** - Responsive design optimized for all devices
 - 🔒 **PDPA Compliant** - Singapore data protection compliance built-in
-- 🧪 **Well Tested** - 84+ unit tests with Vitest
+- 🧪 **Well Tested** - 84+ unit tests + E2E tests with Vitest & Playwright
 - 🎛️ **Admin Dashboard** - Full CRUD for orders and products
 - 👤 **User Dashboard** - Order history, course access, profile management
+- 🚀 **Production Ready** - CI/CD, monitoring, automated backups
+- 📧 **Email Service** - Transactional emails with Resend
+- 🐛 **Error Tracking** - Sentry integration for monitoring
 
 ---
 
@@ -82,6 +85,9 @@
 - 📱 **PWA Ready** - Service worker support
 - 🌐 **SEO Optimized** - Meta tags, structured data
 - 🎓 **Digital Course Access** - Automatic enrollment on purchase
+- 🔄 **CI/CD Pipeline** - GitHub Actions for testing & deployment
+- 📊 **Monitoring** - Sentry error tracking & performance monitoring
+- 💾 **Automated Backups** - Daily database backups to S3
 
 ---
 
@@ -103,17 +109,36 @@
 | Next.js API | 16.1.4 | API routes |
 | Prisma | 6.6.0 | ORM |
 | PostgreSQL | 16 | Database |
-| Stripe | 17.0.0 | Payments |
-| Jose | 5.9.0 | JWT handling |
+| Stripe | 20.3.0 | Payments |
+| Jose | 6.1.3 | JWT handling |
+| Resend | latest | Transactional email |
+| Sentry | latest | Error monitoring |
+
+### DevOps & Infrastructure
+| Tool | Purpose |
+|------|---------|
+| GitHub Actions | CI/CD pipeline |
+| Docker Compose | Production orchestration |
+| Nginx | Reverse proxy & SSL |
+| AWS S3 | Backup storage |
 
 ### Development
 | Tool | Purpose |
 |------|---------|
-| Vitest | Unit testing |
-| Playwright | E2E testing |
+| Vitest | Unit testing (84+ tests) |
+| Playwright | E2E testing (4 test suites) |
 | ESLint | Code linting |
 | Prettier | Code formatting |
 | Docker | Containerization |
+
+### CI/CD & Monitoring
+| Workflow | Purpose |
+|----------|---------|
+| CI | Type check, lint, unit tests |
+| E2E | Playwright tests with PostgreSQL |
+| Deploy Staging | Auto-deploy to staging |
+| Deploy Production | Production deployment with rollback |
+| Backup | Automated daily database backups |
 
 ---
 
@@ -311,17 +336,49 @@ LArtisan-Baking-Atelier/
 │   ├── 📄 schema.prisma             # Prisma schema
 │   └── 📄 seed.ts                   # Database seeding
 │
+├── 📂 .github/                      # GitHub Actions workflows
+│   └── 📂 workflows/
+│       ├── 📄 ci.yml                # Continuous Integration
+│       ├── 📄 e2e.yml               # E2E testing
+│       ├── 📄 deploy-staging.yml    # Staging deployment
+│       ├── 📄 deploy-production.yml # Production deployment
+│       └── 📄 backup.yml            # Automated backups
+│
 ├── 📂 docker/                       # Docker configuration
 │   ├── 📄 Dockerfile
-│   └── 📄 docker-compose.yml
+│   ├── 📄 docker-compose.yml        # Development
+│   ├── 📄 docker-compose.prod.yml   # Production
+│   └── 📄 docker-compose.override.yml
+│
+├── 📂 nginx/                        # Nginx configuration
+│   ├── 📄 nginx.conf                # Reverse proxy config
+│   └── 📄 proxy_params
 │
 ├── 📂 public/                       # Static assets
 │   └── 📂 images/                   # Product images
 │
-├── 📄 .env.example                  # Environment template
+├── 📂 tests/                        # Test suites
+│   ├── 📂 e2e/                      # Playwright E2E tests
+│   │   ├── 📄 auth.spec.ts
+│   │   ├── 📄 shop.spec.ts
+│   │   ├── 📄 checkout.spec.ts
+│   │   └── 📄 admin.spec.ts
+│   └── 📂 a11y/                     # Accessibility tests
+│
+├── 📂 scripts/                      # Utility scripts
+│   ├── 📄 backup-db.sh              # Database backup
+│   └── 📄 restore-db.sh             # Database restore
+│
+├── 📄 .env.example                  # Development environment
+├── 📄 .env.production.example       # Production environment
+├── 📄 .env.staging.example          # Staging environment
 ├── 📄 next.config.ts                # Next.js config
-├── 📄 tailwind.config.ts            # Tailwind config
 ├── 📄 vitest.config.ts              # Vitest config
+├── 📄 playwright.config.ts          # Playwright config
+├── 📄 sentry.client.config.ts       # Sentry client config
+├── 📄 sentry.server.config.ts       # Sentry server config
+├── 📄 sentry.edge.config.ts         # Sentry edge config
+├── 📄 instrumentation.ts            # OpenTelemetry instrumentation
 ├── 📄 package.json
 └── 📄 README.md                     # This file
 ```
@@ -431,24 +488,57 @@ flowchart TD
 
 ## 🔐 Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env.local` file in the root directory for development:
 
+```bash
+cp .env.example .env.local
+```
+
+### Required Environment Variables
+
+#### Core Application
 ```env
-# Database
+NODE_ENV=development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+#### Database (PostgreSQL)
+```env
 DATABASE_URL="postgresql://user:password@localhost:5432/lartisan_db"
+```
 
-# JWT Authentication
+#### Authentication (JWT)
+```env
 JWT_SECRET="your-super-secret-jwt-key-min-32-chars"
+```
 
-# Stripe (Get from https://dashboard.stripe.com)
+#### Stripe Payments
+```env
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
-
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NODE_ENV="development"
 ```
+
+#### Email Service (Resend)
+```env
+RESEND_API_KEY="re_..."
+EMAIL_FROM="L'Artisan Baking Atelier <noreply@artisan-baking.com>"
+```
+
+#### Error Monitoring (Sentry - Optional for dev)
+```env
+SENTRY_DSN="https://..."
+```
+
+### Environment Templates
+
+The project includes environment templates for different stages:
+
+| File | Purpose |
+|------|---------|
+| `.env.example` | Development configuration |
+| `.env.production.example` | Production secrets template |
+| `.env.staging.example` | Staging environment template |
 
 ### Stripe Webhook Setup (Local Development)
 
@@ -458,7 +548,7 @@ NODE_ENV="development"
    ```bash
    stripe listen --forward-to localhost:3000/api/webhooks/stripe
    ```
-4. Copy the webhook secret to `.env`
+4. Copy the webhook secret to `.env.local`
 
 ---
 
@@ -478,56 +568,93 @@ npm test -- --watch
 
 ### Run E2E Tests
 ```bash
-# Start dev server first
-npm run dev
+# Run all E2E tests
+npm run test:e2e
 
-# Run Playwright tests
-npx playwright test
+# Run E2E tests with UI
+npm run test:e2e:ui
+
+# Run specific test file
+npx playwright test tests/e2e/auth.spec.ts
 ```
 
 ### Test Coverage
 
-| Module | Coverage |
-|--------|----------|
-| GST Calculator | 100% |
-| Cart Utilities | 100% |
-| Authentication | Core flows tested |
-| **Total** | **84 tests passing** |
+| Module | Coverage | Tests |
+|--------|----------|-------|
+| GST Calculator | 100% | 43 tests |
+| Cart Utilities | 100% | 41 tests |
+| Authentication E2E | Core flows | auth.spec.ts |
+| Shop E2E | Critical paths | shop.spec.ts |
+| Checkout E2E | Payment flow | checkout.spec.ts |
+| Admin E2E | Dashboard CRUD | admin.spec.ts |
+| **Total** | **Comprehensive** | **84+ unit + 4 E2E suites** |
 
 ---
 
 ## 🚢 Deployment
 
-### Docker Deployment
+### Production Deployment (Docker)
 
-1. **Build and run with Docker Compose**
+1. **Configure environment variables**
    ```bash
-   docker-compose up --build -d
+   cp .env.production.example .env.production
+   # Edit with your production values
    ```
 
-2. **Run database migrations**
+2. **Build and deploy with Docker Compose**
    ```bash
-   docker-compose exec app npx prisma migrate deploy
+   docker-compose -f docker-compose.prod.yml up -d
    ```
 
-### Vercel Deployment
+3. **Run database migrations**
+   ```bash
+   docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+   ```
 
-1. **Push to GitHub**
-2. **Connect to Vercel**
-3. **Configure environment variables**
-4. **Deploy**
+4. **Verify deployment**
+   ```bash
+   curl https://your-domain.com/api/health
+   ```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone)
+### Infrastructure Components
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Load Balancer | Nginx | SSL termination, rate limiting |
+| Application | Next.js (2+ replicas) | Web server |
+| Database | PostgreSQL 16 | Primary data store |
+| Cache | Redis | Sessions & caching |
+| Monitoring | Sentry | Error tracking |
+| Email | Resend | Transactional emails |
+| Backups | AWS S3 | Daily database backups |
+
+### CI/CD Pipeline
+
+The project includes automated CI/CD with GitHub Actions:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **CI** | PR & Push | Type check, lint, unit tests |
+| **E2E** | PR & Push | Playwright E2E tests |
+| **Deploy Staging** | Push to `develop` | Auto-deploy to staging |
+| **Deploy Production** | Push to `main` | Production deployment |
+| **Backup** | Daily 2 AM UTC | Database backups |
 
 ### Production Checklist
 
-- [ ] Set `NODE_ENV=production`
+- [x] Set `NODE_ENV=production`
+- [x] Configure CI/CD pipeline (GitHub Actions)
+- [x] Set up production Docker Compose
+- [x] Configure Nginx reverse proxy with SSL
+- [x] Set up error monitoring (Sentry)
+- [x] Configure email service (Resend)
+- [x] Set up automated database backups
 - [ ] Configure production Stripe keys
 - [ ] Set up production database
 - [ ] Configure Stripe webhooks for production URL
-- [ ] Enable Vercel Analytics (optional)
-- [ ] Set up error monitoring (Sentry)
-- [ ] Configure email service
+- [ ] Set up SSL certificates
+- [ ] Configure GitHub Secrets for deployment
 
 ---
 
